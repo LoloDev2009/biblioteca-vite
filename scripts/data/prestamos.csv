@@ -1,0 +1,2 @@
+id,libro_id,prestado_a,contacto,fecha_prestamo,fecha_limite,fecha_devolucion,estado,notas
+1,276,Mica,,2026-07-18,2026-12-31,,prestado,
