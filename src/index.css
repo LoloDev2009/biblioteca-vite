@@ -473,6 +473,73 @@ button:disabled { opacity: 0.6; cursor: not-allowed; }
 .preview-portada { width: 110px; border-radius: var(--radio-chico); align-self: flex-start; box-shadow: var(--sombra-sm); }
 .acciones-form { display: flex; gap: 0.65rem; }
 
+.form-libro textarea {
+  padding: 0.65rem 0.85rem;
+  border-radius: var(--radio-chico);
+  border: 1px solid var(--borde-fuerte);
+  font-size: 0.95rem;
+  font-family: 'Inter', sans-serif;
+  background: var(--crema);
+  color: var(--tinta);
+  resize: vertical;
+  transition: border-color var(--transicion), box-shadow var(--transicion);
+}
+.form-libro textarea:focus {
+  border-color: var(--petroleo);
+  outline: none;
+  box-shadow: 0 0 0 3px var(--petroleo-tenue);
+  background: var(--papel);
+}
+
+.fieldset-extra {
+  border: 1px dashed var(--borde-fuerte);
+  border-radius: var(--radio-chico);
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  margin: 0;
+}
+.fieldset-extra legend {
+  font-family: 'Fraunces', serif;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--madera-oscura);
+  padding: 0 0.4rem;
+}
+.fila-2 { display: flex; gap: 0.85rem; }
+.fila-2 label { flex: 1; }
+
+/* ---------- Detalles extendidos en la ficha del libro ---------- */
+.detalles-extra {
+  background: var(--papel);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio);
+  padding: 1.3rem;
+  margin-top: 1.2rem;
+  box-shadow: var(--sombra-sm);
+}
+.detalles-extra h3 { color: var(--petroleo-oscuro); font-size: 1.05rem; margin-bottom: 0.9rem; }
+.grilla-detalles {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 0.9rem;
+  margin-bottom: 0.9rem;
+}
+.dato-extra { display: flex; flex-direction: column; gap: 0.15rem; }
+.dato-etiqueta { font-size: 0.74rem; color: var(--tinta-tenue); text-transform: uppercase; letter-spacing: 0.04em; }
+.dato-valor { font-size: 0.95rem; color: var(--tinta); font-weight: 500; }
+
+.bloque-texto { margin-top: 1rem; padding-top: 1rem; border-top: 1px dashed var(--borde-fuerte); }
+.bloque-texto:first-of-type { margin-top: 0.4rem; }
+.bloque-texto h4 {
+  font-family: 'Fraunces', serif;
+  font-size: 0.92rem;
+  color: var(--madera-oscura);
+  margin: 0 0 0.4rem;
+}
+.bloque-texto p { margin: 0; font-size: 0.92rem; line-height: 1.55; color: var(--tinta); white-space: pre-wrap; }
+
 /* ---------- Préstamos ---------- */
 .lista-prestamos { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.9rem; }
 .lista-prestamos li {
@@ -642,4 +709,5 @@ button:disabled { opacity: 0.6; cursor: not-allowed; }
   .grid-libros { grid-template-columns: repeat(2, 1fr); }
   .filtros { flex-direction: column; }
   .filtros input, .filtros select { min-width: 0; }
+  .fila-2 { flex-direction: column; gap: 0.85rem; }
 }

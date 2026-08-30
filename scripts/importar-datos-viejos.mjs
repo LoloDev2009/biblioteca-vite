@@ -102,7 +102,7 @@ async function main() {
   fs.writeFileSync(path.join(DATA_DIR, 'mapa_libros.json'), JSON.stringify(mapaIds, null, 2))
   console.log(`Libros importados: ${librosOk} (errores: ${librosError})`)
 
-  /console.log(`Importando ${prestamos.length} préstamos...`)
+  console.log(`Importando ${prestamos.length} préstamos...`)
   let prestamosOk = 0
   let prestamosSinLibro = 0
   let prestamosError = 0

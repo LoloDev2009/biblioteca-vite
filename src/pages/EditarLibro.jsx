@@ -34,6 +34,15 @@ export default function EditarLibro() {
         isbn: form.isbn,
         estante: form.estante,
         leido: form.leido,
+        saga: form.saga || null,
+        anio_publicacion: form.anio_publicacion === '' ? null : Number(form.anio_publicacion),
+        idioma: form.idioma || null,
+        paginas: form.paginas === '' ? null : Number(form.paginas),
+        ejemplares_totales: form.ejemplares_totales === '' ? null : Number(form.ejemplares_totales),
+        puntuacion: form.puntuacion === '' ? null : Number(form.puntuacion),
+        descripcion: form.descripcion || null,
+        resena: form.resena || null,
+        notas: form.notas || null,
       })
       navigate(`/libro/${id}`)
     } catch (e) {
@@ -89,6 +98,82 @@ export default function EditarLibro() {
         </label>
 
         {form.portada_url && <img className="preview-portada" src={form.portada_url} alt="preview" />}
+
+        <fieldset className="fieldset-extra">
+          <legend>Más detalles</legend>
+
+          <label>
+            Saga
+            <input value={form.saga || ''} onChange={(e) => handleChange('saga', e.target.value)} />
+          </label>
+          <div className="fila-2">
+            <label>
+              Año de publicación
+              <input
+                type="number"
+                value={form.anio_publicacion ?? ''}
+                onChange={(e) => handleChange('anio_publicacion', e.target.value)}
+              />
+            </label>
+            <label>
+              Idioma
+              <input value={form.idioma || ''} onChange={(e) => handleChange('idioma', e.target.value)} />
+            </label>
+          </div>
+          <div className="fila-2">
+            <label>
+              Páginas
+              <input
+                type="number"
+                value={form.paginas ?? ''}
+                onChange={(e) => handleChange('paginas', e.target.value)}
+              />
+            </label>
+            <label>
+              Ejemplares
+              <input
+                type="number"
+                value={form.ejemplares_totales ?? ''}
+                onChange={(e) => handleChange('ejemplares_totales', e.target.value)}
+              />
+            </label>
+          </div>
+          <label>
+            Puntuación (0 a 5)
+            <input
+              type="number"
+              min="0"
+              max="5"
+              step="0.5"
+              value={form.puntuacion ?? ''}
+              onChange={(e) => handleChange('puntuacion', e.target.value)}
+            />
+          </label>
+          <label>
+            Descripción
+            <textarea
+              rows={3}
+              value={form.descripcion || ''}
+              onChange={(e) => handleChange('descripcion', e.target.value)}
+            />
+          </label>
+          <label>
+            Mi reseña
+            <textarea
+              rows={3}
+              value={form.resena || ''}
+              onChange={(e) => handleChange('resena', e.target.value)}
+            />
+          </label>
+          <label>
+            Notas
+            <textarea
+              rows={2}
+              value={form.notas || ''}
+              onChange={(e) => handleChange('notas', e.target.value)}
+            />
+          </label>
+        </fieldset>
 
         <div className="acciones-form">
           <button type="submit" disabled={guardando}>

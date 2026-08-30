@@ -104,6 +104,64 @@ export default function DetalleLibro() {
         <Link to={`/libro/${id}/editar`} className="btn-link">Editar datos</Link>
         <button className="btn-eliminar" onClick={handleEliminar}>Eliminar libro</button>
       </div>
+
+      <SeccionDetalles libro={libro} />
     </div>
+  )
+}
+
+// Muestra los campos "extra" del libro (saga, año, idioma, páginas, puntuación,
+// reseña, descripción, notas, ejemplares) solo cuando tienen algún valor cargado,
+// para no llenar la pantalla de guiones cuando no se completaron.
+function SeccionDetalles({ libro }) {
+  const datos = [
+    { etiqueta: 'Saga', valor: libro.saga },
+    { etiqueta: 'Año de publicación', valor: libro.anio_publicacion },
+    { etiqueta: 'Idioma', valor: libro.idioma },
+    { etiqueta: 'Páginas', valor: libro.paginas },
+    { etiqueta: 'Ejemplares', valor: libro.ejemplares_totales },
+    { etiqueta: 'Puntuación', valor: libro.puntuacion != null ? `${libro.puntuacion} / 5` : null },
+  ].filter((d) => d.valor !== null && d.valor !== undefined && d.valor !== '')
+
+  const tieneTextoLargo = libro.descripcion || libro.resena || libro.notas
+
+  if (datos.length === 0 && !tieneTextoLargo) return null
+
+  return (
+    <section className="detalles-extra">
+      <h3>Más detalles</h3>
+
+      {datos.length > 0 && (
+        <div className="grilla-detalles">
+          {datos.map((d) => (
+            <div key={d.etiqueta} className="dato-extra">
+              <span className="dato-etiqueta">{d.etiqueta}</span>
+              <span className="dato-valor">{d.valor}</span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {libro.descripcion && (
+        <div className="bloque-texto">
+          <h4>Descripción</h4>
+          <p>{libro.descripcion}</p>
+        </div>
+      )}
+
+      {libro.resena && (
+        <div className="bloque-texto">
+          <h4>Mi reseña</h4>
+          <p>{libro.resena}</p>
+        </div>
+      )}
+
+      {libro.notas && (
+        <div className="bloque-texto">
+          <h4>Notas</h4>
+          <p>{libro.notas}</p>
+        </div>
+      )}
+    </section>
   )
 }

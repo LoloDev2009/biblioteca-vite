@@ -12,6 +12,15 @@ const LIBRO_VACIO = {
   estante: '',
   editorial: '',
   leido: false,
+  saga: '',
+  anio_publicacion: '',
+  idioma: '',
+  paginas: '',
+  ejemplares_totales: '',
+  puntuacion: '',
+  descripcion: '',
+  resena: '',
+  notas: '',
 }
 
 export default function AgregarLibro() {
@@ -54,7 +63,13 @@ export default function AgregarLibro() {
     }
     setGuardando(true)
     try {
-      await crearLibro(form)
+      await crearLibro({
+        ...form,
+        anio_publicacion: form.anio_publicacion === '' ? null : Number(form.anio_publicacion),
+        paginas: form.paginas === '' ? null : Number(form.paginas),
+        ejemplares_totales: form.ejemplares_totales === '' ? null : Number(form.ejemplares_totales),
+        puntuacion: form.puntuacion === '' ? null : Number(form.puntuacion),
+      })
       navigate('/')
     } catch (e) {
       setMensaje('No se pudo guardar el libro.')
@@ -122,6 +137,82 @@ export default function AgregarLibro() {
         {form.portada_url && (
           <img className="preview-portada" src={form.portada_url} alt="preview" />
         )}
+
+        <fieldset className="fieldset-extra">
+          <legend>Más detalles (opcional)</legend>
+
+          <label>
+            Saga
+            <input value={form.saga} onChange={(e) => handleChange('saga', e.target.value)} />
+          </label>
+          <div className="fila-2">
+            <label>
+              Año de publicación
+              <input
+                type="number"
+                value={form.anio_publicacion}
+                onChange={(e) => handleChange('anio_publicacion', e.target.value)}
+              />
+            </label>
+            <label>
+              Idioma
+              <input value={form.idioma} onChange={(e) => handleChange('idioma', e.target.value)} />
+            </label>
+          </div>
+          <div className="fila-2">
+            <label>
+              Páginas
+              <input
+                type="number"
+                value={form.paginas}
+                onChange={(e) => handleChange('paginas', e.target.value)}
+              />
+            </label>
+            <label>
+              Ejemplares
+              <input
+                type="number"
+                value={form.ejemplares_totales}
+                onChange={(e) => handleChange('ejemplares_totales', e.target.value)}
+              />
+            </label>
+          </div>
+          <label>
+            Puntuación (0 a 5)
+            <input
+              type="number"
+              min="0"
+              max="5"
+              step="0.5"
+              value={form.puntuacion}
+              onChange={(e) => handleChange('puntuacion', e.target.value)}
+            />
+          </label>
+          <label>
+            Descripción
+            <textarea
+              rows={3}
+              value={form.descripcion}
+              onChange={(e) => handleChange('descripcion', e.target.value)}
+            />
+          </label>
+          <label>
+            Mi reseña
+            <textarea
+              rows={3}
+              value={form.resena}
+              onChange={(e) => handleChange('resena', e.target.value)}
+            />
+          </label>
+          <label>
+            Notas
+            <textarea
+              rows={2}
+              value={form.notas}
+              onChange={(e) => handleChange('notas', e.target.value)}
+            />
+          </label>
+        </fieldset>
 
         <button type="submit" disabled={guardando}>
           {guardando ? 'Guardando...' : 'Guardar libro'}
