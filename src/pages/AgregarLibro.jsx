@@ -1,7 +1,7 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { buscarPorIsbn } from '../lib/openLibrary'
-import { crearLibro } from '../lib/libros'
+import { crearLibro, listarValoresFiltro } from '../lib/libros'
 
 const LIBRO_VACIO = {
   titulo: '',
@@ -13,6 +13,7 @@ const LIBRO_VACIO = {
   editorial: '',
   leido: false,
   saga: '',
+  numero_saga: '',
   anio_publicacion: '',
   idioma: '',
   paginas: '',
@@ -30,6 +31,18 @@ export default function AgregarLibro() {
   const [buscando, setBuscando] = useState(false)
   const [mensaje, setMensaje] = useState(null)
   const [guardando, setGuardando] = useState(false)
+  const [sugerencias, setSugerencias] = useState({ generos: [], autores: [], sagas: [], idiomas: [] })
+
+  useEffect(() => {
+    listarValoresFiltro().then((data) => {
+      setSugerencias({
+        generos: [...new Set(data.map((l) => l.genero).filter(Boolean))].sort(),
+        autores: [...new Set(data.map((l) => l.autor).filter(Boolean))].sort(),
+        sagas: [...new Set(data.map((l) => l.saga).filter(Boolean))].sort(),
+        idiomas: [...new Set(data.map((l) => l.idioma).filter(Boolean))].sort(),
+      })
+    })
+  }, [])
 
   async function handleBuscarIsbn() {
     if (!isbn.trim()) return
@@ -69,6 +82,7 @@ export default function AgregarLibro() {
         paginas: form.paginas === '' ? null : Number(form.paginas),
         ejemplares_totales: form.ejemplares_totales === '' ? null : Number(form.ejemplares_totales),
         puntuacion: form.puntuacion === '' ? null : Number(form.puntuacion),
+        numero_saga: form.numero_saga === '' ? null : Number(form.numero_saga),
       })
       navigate('/')
     } catch (e) {
@@ -103,7 +117,11 @@ export default function AgregarLibro() {
         </label>
         <label>
           Autor
-          <input value={form.autor} onChange={(e) => handleChange('autor', e.target.value)} />
+          <input
+            list="lista-autores"
+            value={form.autor}
+            onChange={(e) => handleChange('autor', e.target.value)}
+          />
         </label>
         <label>
           Portada (URL)
@@ -111,7 +129,11 @@ export default function AgregarLibro() {
         </label>
         <label>
           Género
-          <input value={form.genero} onChange={(e) => handleChange('genero', e.target.value)} />
+          <input
+            list="lista-generos"
+            value={form.genero}
+            onChange={(e) => handleChange('genero', e.target.value)}
+          />
         </label>
         <label>
           Editorial
@@ -141,10 +163,25 @@ export default function AgregarLibro() {
         <fieldset className="fieldset-extra">
           <legend>Más detalles (opcional)</legend>
 
-          <label>
-            Saga
-            <input value={form.saga} onChange={(e) => handleChange('saga', e.target.value)} />
-          </label>
+          <div className="fila-2">
+            <label>
+              Saga
+              <input
+                list="lista-sagas"
+                value={form.saga}
+                onChange={(e) => handleChange('saga', e.target.value)}
+              />
+            </label>
+            <label>
+              N° en la saga
+              <input
+                type="number"
+                step="0.5"
+                value={form.numero_saga}
+                onChange={(e) => handleChange('numero_saga', e.target.value)}
+              />
+            </label>
+          </div>
           <div className="fila-2">
             <label>
               Año de publicación
@@ -156,7 +193,11 @@ export default function AgregarLibro() {
             </label>
             <label>
               Idioma
-              <input value={form.idioma} onChange={(e) => handleChange('idioma', e.target.value)} />
+              <input
+                list="lista-idiomas"
+                value={form.idioma}
+                onChange={(e) => handleChange('idioma', e.target.value)}
+              />
             </label>
           </div>
           <div className="fila-2">
@@ -218,6 +259,19 @@ export default function AgregarLibro() {
           {guardando ? 'Guardando...' : 'Guardar libro'}
         </button>
       </form>
+
+      <datalist id="lista-autores">
+        {sugerencias.autores.map((a) => <option key={a} value={a} />)}
+      </datalist>
+      <datalist id="lista-generos">
+        {sugerencias.generos.map((g) => <option key={g} value={g} />)}
+      </datalist>
+      <datalist id="lista-sagas">
+        {sugerencias.sagas.map((s) => <option key={s} value={s} />)}
+      </datalist>
+      <datalist id="lista-idiomas">
+        {sugerencias.idiomas.map((i) => <option key={i} value={i} />)}
+      </datalist>
     </div>
   )
 }

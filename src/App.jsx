@@ -7,12 +7,16 @@ import AgregarLibro from './pages/AgregarLibro.jsx'
 import Prestamos from './pages/Prestamos.jsx'
 import Estantes from './pages/Estantes.jsx'
 import Wishlist from './pages/Wishlist.jsx'
+import Sagas from './pages/Sagas.jsx'
+import Estadisticas from './pages/Estadisticas.jsx'
 
 const ENLACES_NAV = [
   { to: '/', label: 'Catálogo', end: true },
   { to: '/estantes', label: 'Estantes' },
+  { to: '/sagas', label: 'Sagas' },
   { to: '/wishlist', label: 'Wishlist' },
   { to: '/prestamos', label: 'Préstamos' },
+  { to: '/estadisticas', label: 'Estadísticas' },
   { to: '/agregar', label: 'Agregar libro' },
 ]
 
@@ -66,7 +70,9 @@ export default function App() {
           <Route path="/agregar" element={<AgregarLibro />} />
           <Route path="/prestamos" element={<Prestamos />} />
           <Route path="/estantes" element={<Estantes />} />
+          <Route path="/sagas" element={<Sagas />} />
           <Route path="/wishlist" element={<Wishlist />} />
+          <Route path="/estadisticas" element={<Estadisticas />} />
         </Routes>
       </main>
     </div>

@@ -254,6 +254,7 @@ select:focus-visible {
   color: white;
   border-color: var(--petroleo);
 }
+.filtros-extra { margin-top: -0.7rem; }
 
 /* ---------- Catálogo: portadas como protagonistas ---------- */
 .grid-libros {
@@ -669,6 +670,115 @@ button:disabled { opacity: 0.6; cursor: not-allowed; }
   box-shadow: 0 2px 5px rgba(42, 36, 32, 0.25) inset;
 }
 
+/* ---------- Sagas ---------- */
+.sagas h2 { color: var(--madera-oscura); }
+.saga-bloque {
+  background: var(--papel);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio);
+  margin-bottom: 1.4rem;
+  padding: 1.1rem 1.1rem 1.3rem;
+  box-shadow: var(--sombra-sm);
+}
+.saga-encabezado { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 0.9rem; flex-wrap: wrap; gap: 0.4rem; }
+.saga-encabezado h3 { margin: 0; color: var(--petroleo-oscuro); }
+.saga-progreso { font-size: 0.82rem; color: var(--tinta-suave); font-weight: 500; }
+
+.fila-saga { display: flex; gap: 1rem; overflow-x: auto; padding-bottom: 0.3rem; }
+.mini-card-libro {
+  position: relative;
+  flex-shrink: 0;
+  width: 110px;
+  text-decoration: none;
+  color: var(--tinta);
+  transition: transform var(--transicion);
+}
+.mini-card-libro:hover { transform: translateY(-4px); }
+.mini-card-libro img,
+.mini-card-libro .sin-portada {
+  width: 100%;
+  aspect-ratio: 2 / 3;
+  object-fit: cover;
+  border-radius: var(--radio-chico);
+  box-shadow: var(--sombra-sm);
+  display: block;
+}
+.numero-saga {
+  position: absolute;
+  top: 0.4rem;
+  left: 0.4rem;
+  background: var(--madera-oscura);
+  color: var(--crema);
+  font-size: 0.7rem;
+  font-weight: 700;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1;
+}
+.mini-info { padding-top: 0.4rem; display: flex; flex-direction: column; gap: 0.15rem; }
+.mini-info strong { font-family: 'Fraunces', serif; font-size: 0.82rem; line-height: 1.25; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.mini-info span { font-size: 0.72rem; color: var(--tinta-suave); }
+
+/* ---------- Estadísticas ---------- */
+.estadisticas h2 { color: var(--madera-oscura); margin-bottom: 1.2rem; }
+
+.grid-metricas {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.8rem;
+}
+.metrica-card {
+  background: var(--papel);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio);
+  padding: 1.1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  box-shadow: var(--sombra-sm);
+  transition: box-shadow var(--transicion), transform var(--transicion);
+}
+.metrica-card:hover { box-shadow: var(--sombra-md); transform: translateY(-2px); }
+.metrica-valor { font-family: 'Fraunces', serif; font-size: 1.9rem; font-weight: 600; color: var(--petroleo-oscuro); line-height: 1; }
+.metrica-etiqueta { font-size: 0.8rem; color: var(--tinta-suave); }
+
+.grid-rankings {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1.2rem;
+}
+.ranking-bloque {
+  background: var(--papel);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio);
+  padding: 1.2rem;
+  box-shadow: var(--sombra-sm);
+}
+.ranking-bloque h3 { font-size: 1rem; color: var(--petroleo-oscuro); margin-bottom: 1rem; }
+
+.barra-ranking { margin-bottom: 0.85rem; }
+.barra-ranking:last-child { margin-bottom: 0; }
+.barra-ranking-cabecera {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.85rem;
+  margin-bottom: 0.3rem;
+  color: var(--tinta);
+}
+.barra-ranking-cabecera span:last-child { color: var(--tinta-suave); font-variant-numeric: tabular-nums; }
+.barra-fondo { background: var(--crema-sidebar); border-radius: 999px; height: 8px; overflow: hidden; }
+.barra-relleno {
+  height: 100%;
+  background: linear-gradient(90deg, var(--petroleo), var(--oliva));
+  border-radius: 999px;
+  transition: width 0.4s ease;
+}
+
 /* ---------- Responsive: sidebar se vuelve menú lateral desplegable ---------- */
 @media (max-width: 899px) {
   .app-shell { flex-direction: column; }
@@ -710,4 +820,6 @@ button:disabled { opacity: 0.6; cursor: not-allowed; }
   .filtros { flex-direction: column; }
   .filtros input, .filtros select { min-width: 0; }
   .fila-2 { flex-direction: column; gap: 0.85rem; }
+  .mini-card-libro { width: 92px; }
+  .grid-metricas { grid-template-columns: repeat(2, 1fr); }
 }

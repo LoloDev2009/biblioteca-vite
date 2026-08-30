@@ -7,7 +7,8 @@ App web responsive para catalogar los libros de tu casa y llevar registro de pr�
 ### 1. Crear el proyecto en Supabase
 1. Andá a https://supabase.com y creá una cuenta / proyecto nuevo (plan free).
 2. En el proyecto, andá a **SQL Editor** → **New query**, pegá el contenido de `schema.sql` y ejecutalo. Esto crea las tablas `libros`, `prestamos` y `wishlist`.
-   - Si ya tenías la base creada de antes, en vez de `schema.sql` corré `migration_2.sql` (agrega la columna `leido` y la tabla `wishlist` sin borrar nada).
+   - Si ya tenías la base creada de antes, en vez de `schema.sql` corré las migraciones en orden
+     (`migration_2.sql`, `migration_3.sql`, `migration_4.sql`) sin borrar nada de lo que ya tenés.
 3. Andá a **Project Settings → API** y copiá:
    - `Project URL`
    - `anon public key` (en proyectos nuevos puede figurar como "Publishable key" — es lo mismo)
@@ -32,10 +33,12 @@ La app va a estar en `http://localhost:5173`.
 4. Deploy. Listo — accesible desde el celu y la PC.
 
 ## Funcionalidad
-- **Catálogo**: buscar por título, filtrar por género, filtrar "sin leer"
-- **Detalle de libro**: ver datos, marcar leído/no leído, prestar y registrar devolución, editar, eliminar
-- **Editar**: modificar cualquier dato de un libro ya cargado
+- **Catálogo**: buscar por título, filtrar por género/autor/saga/idioma, ordenar (título, autor, año, puntuación, agregado recientemente), filtro "sin leer"
+- **Detalle de libro**: ver datos + sección de "más detalles" (saga, año, idioma, páginas, puntuación, descripción, reseña, notas), marcar leído/no leído, prestar y registrar devolución, editar, eliminar
+- **Editar / Agregar**: todos los campos, incluidos los extendidos, en una sección "Más detalles"
 - **Estantes**: vista de estantería con los libros como lomos de colores, agrupados por estante
+- **Sagas**: libros agrupados por colección/saga, ordenados por año de publicación, con progreso de lectura
+- **Estadísticas**: total de libros, % leídos, páginas leídas, puntuación promedio, préstamos activos, en wishlist, géneros y autores más frecuentes
 - **Wishlist**: anotar libros que querés conseguir (con autocompletado por ISBN opcional); al conseguirlos, pasan al catálogo con un clic
 - **Préstamos**: listado de préstamos activos con devolución rápida
 
@@ -54,8 +57,10 @@ src/
     EditarLibro.jsx         -> editar datos de un libro existente
     AgregarLibro.jsx          -> agregar libro (con autocompletado ISBN)
     Estantes.jsx                -> vista de estantería (lomos de libros)
+    Sagas.jsx                    -> libros agrupados por saga/colección
     Wishlist.jsx                  -> libros deseados, con paso a catálogo
-    Prestamos.jsx                  -> lista de préstamos activos
+    Estadisticas.jsx                -> dashboard de métricas de la colección
+    Prestamos.jsx                     -> lista de préstamos activos
 ```
 
 ## Importar datos de otra base

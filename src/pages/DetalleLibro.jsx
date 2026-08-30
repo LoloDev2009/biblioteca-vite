@@ -116,6 +116,7 @@ export default function DetalleLibro() {
 function SeccionDetalles({ libro }) {
   const datos = [
     { etiqueta: 'Saga', valor: libro.saga },
+    { etiqueta: 'N° en la saga', valor: libro.numero_saga },
     { etiqueta: 'Año de publicación', valor: libro.anio_publicacion },
     { etiqueta: 'Idioma', valor: libro.idioma },
     { etiqueta: 'Páginas', valor: libro.paginas },
