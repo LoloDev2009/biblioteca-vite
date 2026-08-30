@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { buscarPorIsbn } from '../lib/openLibrary'
 import { crearLibro, listarValoresFiltro } from '../lib/libros'
+import ScannerIsbn from '../components/ScannerIsbn.jsx'
 
 const LIBRO_VACIO = {
   titulo: '',
@@ -31,6 +32,7 @@ export default function AgregarLibro() {
   const [buscando, setBuscando] = useState(false)
   const [mensaje, setMensaje] = useState(null)
   const [guardando, setGuardando] = useState(false)
+  const [mostrarScanner, setMostrarScanner] = useState(false)
   const [sugerencias, setSugerencias] = useState({ generos: [], autores: [], sagas: [], idiomas: [] })
 
   useEffect(() => {
@@ -44,17 +46,20 @@ export default function AgregarLibro() {
     })
   }, [])
 
-  async function handleBuscarIsbn() {
-    if (!isbn.trim()) return
+  async function handleBuscarIsbn(codigoManual) {
+    const codigo = (codigoManual ?? isbn).trim()
+    if (!codigo) return
     setBuscando(true)
     setMensaje(null)
     try {
-      const datos = await buscarPorIsbn(isbn.trim())
+      const datos = await buscarPorIsbn(codigo)
       if (datos) {
         setForm({ ...LIBRO_VACIO, ...datos })
+        setIsbn(codigo)
         setMensaje('Datos encontrados. Revisá y completá lo que falte.')
       } else {
-        setForm({ ...LIBRO_VACIO, isbn: isbn.trim() })
+        setForm({ ...LIBRO_VACIO, isbn: codigo })
+        setIsbn(codigo)
         setMensaje('No se encontró en Open Library. Completá los datos a mano.')
       }
     } catch (e) {
@@ -62,6 +67,11 @@ export default function AgregarLibro() {
     } finally {
       setBuscando(false)
     }
+  }
+
+  function handleIsbnEscaneado(codigo) {
+    setMostrarScanner(false)
+    handleBuscarIsbn(codigo)
   }
 
   function handleChange(campo, valor) {
@@ -103,10 +113,21 @@ export default function AgregarLibro() {
           value={isbn}
           onChange={(e) => setIsbn(e.target.value)}
         />
-        <button type="button" onClick={handleBuscarIsbn} disabled={buscando}>
+        <button type="button" onClick={() => handleBuscarIsbn()} disabled={buscando}>
           {buscando ? 'Buscando...' : 'Buscar'}
         </button>
+        <button
+          type="button"
+          className="btn-secundario btn-escanear"
+          onClick={() => setMostrarScanner(true)}
+        >
+          📷 Escanear
+        </button>
       </div>
+
+      {mostrarScanner && (
+        <ScannerIsbn onDetectado={handleIsbnEscaneado} onCerrar={() => setMostrarScanner(false)} />
+      )}
 
       {mensaje && <p className="mensaje">{mensaje}</p>}
 

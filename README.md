@@ -35,9 +35,9 @@ La app va a estar en `http://localhost:5173`.
 ## Funcionalidad
 - **Catálogo**: buscar por título, filtrar por género/autor/saga/idioma, ordenar (título, autor, año, puntuación, agregado recientemente), filtro "sin leer"
 - **Detalle de libro**: ver datos + sección de "más detalles" (saga, año, idioma, páginas, puntuación, descripción, reseña, notas), marcar leído/no leído, prestar y registrar devolución, editar, eliminar
-- **Editar / Agregar**: todos los campos, incluidos los extendidos, en una sección "Más detalles"
+- **Editar / Agregar**: todos los campos, incluidos los extendidos, en una sección "Más detalles"; autocompletado por ISBN escaneando con la cámara o escribiendo el código a mano
 - **Estantes**: vista de estantería con los libros como lomos de colores, agrupados por estante
-- **Sagas**: libros agrupados por colección/saga, ordenados por año de publicación, con progreso de lectura
+- **Sagas**: libros agrupados por colección/saga, ordenados por N° de tomo (o año si no lo cargaste), con progreso de lectura
 - **Estadísticas**: total de libros, % leídos, páginas leídas, puntuación promedio, préstamos activos, en wishlist, géneros y autores más frecuentes
 - **Wishlist**: anotar libros que querés conseguir (con autocompletado por ISBN opcional); al conseguirlos, pasan al catálogo con un clic
 - **Préstamos**: listado de préstamos activos con devolución rápida
@@ -45,6 +45,8 @@ La app va a estar en `http://localhost:5173`.
 ## Estructura
 ```
 src/
+  components/
+    ScannerIsbn.jsx     -> escaneo de código de barras (ISBN) con la cámara
   lib/
     supabase.js       -> cliente de Supabase
     libros.js          -> CRUD de libros + filtro leído + agrupado por estante
@@ -77,3 +79,8 @@ para el paso a paso (migración de esquema + export CSV + script de importación
   con navegación lateral fija en desktop/tablet y menú desplegable en mobile.
   Tipografía: Fraunces (títulos) e Inter (interfaz), cargadas desde Google Fonts
   — necesita conexión a internet para verse como corresponde.
+- El escaneo de ISBN con cámara necesita **HTTPS** (los navegadores bloquean el acceso a la
+  cámara en sitios sin HTTPS). En Vercel esto ya viene solo. En desarrollo local (`npm run dev`)
+  también funciona porque `localhost` cuenta como excepción — pero si probás la app desde el
+  celu apuntando a la IP de tu compu en la red local (no `localhost`), la cámara no va a andar
+  salvo que ese túnel también tenga HTTPS.

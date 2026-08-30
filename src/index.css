@@ -425,15 +425,17 @@ button:disabled { opacity: 0.6; cursor: not-allowed; }
 
 /* ---------- Formularios (agregar / editar / wishlist) ---------- */
 .pagina-formulario { max-width: 520px; }
-.buscar-isbn { display: flex; gap: 0.6rem; margin-bottom: 0.7rem; }
+.buscar-isbn { display: flex; gap: 0.6rem; margin-bottom: 0.7rem; flex-wrap: wrap; }
 .buscar-isbn input {
   flex: 1;
+  min-width: 160px;
   padding: 0.65rem 0.9rem;
   border-radius: var(--radio-chico);
   border: 1px solid var(--borde-fuerte);
   background: var(--papel);
 }
 .buscar-isbn input:focus { border-color: var(--petroleo); outline: none; box-shadow: 0 0 0 3px var(--petroleo-tenue); }
+.btn-escanear { white-space: nowrap; }
 
 .form-libro {
   display: flex;
@@ -778,6 +780,30 @@ button:disabled { opacity: 0.6; cursor: not-allowed; }
   border-radius: 999px;
   transition: width 0.4s ease;
 }
+
+/* ---------- Escáner de ISBN ---------- */
+.scanner-isbn {
+  background: var(--papel);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio);
+  padding: 1rem;
+  margin-bottom: 1rem;
+  box-shadow: var(--sombra-sm);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.7rem;
+}
+.scanner-viewport {
+  width: 100%;
+  max-width: 420px;
+  min-height: 240px;
+  background: #16110c;
+  border-radius: var(--radio-chico);
+  overflow: hidden;
+}
+.scanner-viewport video { width: 100%; display: block; }
+.scanner-ayuda { font-size: 0.85rem; color: var(--tinta-suave); text-align: center; margin: 0; }
 
 /* ---------- Responsive: sidebar se vuelve menú lateral desplegable ---------- */
 @media (max-width: 899px) {
