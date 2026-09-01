@@ -8,7 +8,7 @@ App web responsive para catalogar los libros de tu casa y llevar registro de pr�
 1. Andá a https://supabase.com y creá una cuenta / proyecto nuevo (plan free).
 2. En el proyecto, andá a **SQL Editor** → **New query**, pegá el contenido de `schema.sql` y ejecutalo. Esto crea las tablas `libros`, `prestamos` y `wishlist`.
    - Si ya tenías la base creada de antes, en vez de `schema.sql` corré las migraciones en orden
-     (`migration_2.sql`, `migration_3.sql`, `migration_4.sql`) sin borrar nada de lo que ya tenés.
+     (`migration_2.sql`, `migration_3.sql`, `migration_4.sql`, `migration_5.sql`) sin borrar nada de lo que ya tenés.
 3. Andá a **Project Settings → API** y copiá:
    - `Project URL`
    - `anon public key` (en proyectos nuevos puede figurar como "Publishable key" — es lo mismo)
@@ -33,8 +33,11 @@ La app va a estar en `http://localhost:5173`.
 4. Deploy. Listo — accesible desde el celu y la PC.
 
 ## Funcionalidad
-- **Catálogo**: buscar por título, filtrar por género/autor/saga/idioma, ordenar (título, autor, año, puntuación, agregado recientemente), filtro "sin leer"
-- **Detalle de libro**: ver datos + sección de "más detalles" (saga, año, idioma, páginas, puntuación, descripción, reseña, notas), marcar leído/no leído, prestar y registrar devolución, editar, eliminar
+- **Catálogo**: búsqueda multi-campo (título, autor, ISBN, saga, género, idioma, notas), sin distinguir mayúsculas ni acentos; filtrar por género/autor/saga/idioma, ordenar (título, autor, año, puntuación, agregado recientemente), filtros "sin leer" y "favoritos"
+- **Favoritos**: marcar/desmarcar con un clic desde la card del catálogo o desde el detalle, sin entrar a editar
+- **Etiquetas**: agregar tags libres a cada libro desde su detalle (se crean al vuelo si no existen)
+- **Detección de duplicados**: al agregar un libro, si ya existe uno con el mismo ISBN (en cualquier formato, 10 o 13 dígitos) o el mismo título+autor, avisa antes de guardar
+- **Detalle de libro**: ver datos + sección de "más detalles" (saga, año, idioma, páginas, puntuación, descripción, reseña, notas), marcar leído/no leído y favorito, prestar y registrar devolución, editar, eliminar
 - **Editar / Agregar**: todos los campos, incluidos los extendidos, en una sección "Más detalles"; autocompletado por ISBN escaneando con la cámara o escribiendo el código a mano
 - **Estantes**: vista de estantería con los libros como lomos de colores, agrupados por estante
 - **Sagas**: libros agrupados por colección/saga, ordenados por N° de tomo (o año si no lo cargaste), con progreso de lectura
@@ -84,3 +87,7 @@ para el paso a paso (migración de esquema + export CSV + script de importación
   también funciona porque `localhost` cuenta como excepción — pero si probás la app desde el
   celu apuntando a la IP de tu compu en la red local (no `localhost`), la cámara no va a andar
   salvo que ese túnel también tenga HTTPS.
+- La búsqueda multi-campo usa la extensión `unaccent` de Postgres (la activa `migration_5.sql`
+  automáticamente). Si el `create extension` da error de permisos, activala a mano desde
+  **Database → Extensions** en el panel de Supabase, buscando "unaccent", y volvé a correr
+  el resto de la migración.

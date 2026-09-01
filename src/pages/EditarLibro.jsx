@@ -43,6 +43,7 @@ export default function EditarLibro() {
         isbn: form.isbn,
         estante: form.estante,
         leido: form.leido,
+        favorito: form.favorito,
         saga: form.saga || null,
         numero_saga: form.numero_saga === '' ? null : Number(form.numero_saga),
         anio_publicacion: form.anio_publicacion === '' ? null : Number(form.anio_publicacion),
@@ -113,6 +114,14 @@ export default function EditarLibro() {
             onChange={(e) => handleChange('leido', e.target.checked)}
           />
           Ya lo leí
+        </label>
+        <label className="check-leido">
+          <input
+            type="checkbox"
+            checked={!!form.favorito}
+            onChange={(e) => handleChange('favorito', e.target.checked)}
+          />
+          ★ Favorito
         </label>
 
         {form.portada_url && <img className="preview-portada" src={form.portada_url} alt="preview" />}

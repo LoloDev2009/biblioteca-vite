@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { obtenerLibro, eliminarLibro, actualizarLibro } from '../lib/libros'
 import { prestarLibro, marcarDevuelto } from '../lib/prestamos'
+import TagsLibro from '../components/TagsLibro.jsx'
 
 export default function DetalleLibro() {
   const { id } = useParams()
@@ -43,6 +44,11 @@ export default function DetalleLibro() {
     cargar()
   }
 
+  async function handleToggleFavorito() {
+    await actualizarLibro(id, { favorito: !libro.favorito })
+    cargar()
+  }
+
   async function handleEliminar() {
     if (!confirm('¿Seguro que querés borrar este libro?')) return
     await eliminarLibro(id)
@@ -61,7 +67,17 @@ export default function DetalleLibro() {
           <div className="sin-portada grande">Sin portada</div>
         )}
         <div>
-          <h2>{libro.titulo}</h2>
+          <div className="titulo-con-favorito">
+            <h2>{libro.titulo}</h2>
+            <button
+              type="button"
+              className={`boton-favorito ${libro.favorito ? 'activo' : ''}`}
+              onClick={handleToggleFavorito}
+              aria-label={libro.favorito ? 'Quitar de favoritos' : 'Marcar como favorito'}
+            >
+              {libro.favorito ? '★' : '☆'}
+            </button>
+          </div>
           <p><strong>Autor:</strong> {libro.autor || '—'}</p>
           <p><strong>Género:</strong> {libro.genero || '—'}</p>
           <p><strong>Editorial:</strong> {libro.editorial || '—'}</p>
@@ -106,6 +122,8 @@ export default function DetalleLibro() {
       </div>
 
       <SeccionDetalles libro={libro} />
+
+      <TagsLibro libroId={id} />
     </div>
   )
 }

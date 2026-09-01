@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { listarLibros, listarValoresFiltro } from '../lib/libros'
+import { listarLibros, listarValoresFiltro, actualizarLibro } from '../lib/libros'
 
 const OPCIONES_ORDEN = [
   { valor: 'titulo-asc', etiqueta: 'Título (A-Z)', ordenPor: 'titulo', ordenAsc: true },
@@ -22,6 +22,7 @@ export default function Catalogo() {
   const [idioma, setIdioma] = useState('')
   const [orden, setOrden] = useState('titulo-asc')
   const [soloSinLeer, setSoloSinLeer] = useState(false)
+  const [soloFavoritos, setSoloFavoritos] = useState(false)
   const [mostrarMasFiltros, setMostrarMasFiltros] = useState(false)
   const [cargando, setCargando] = useState(true)
   const [error, setError] = useState(null)
@@ -42,9 +43,9 @@ export default function Catalogo() {
   useEffect(() => {
     const timeout = setTimeout(() => {
       cargar()
-    }, 300) // debounce simple para no consultar en cada tecla
+    }, 250) // debounce para no consultar en cada tecla
     return () => clearTimeout(timeout)
-  }, [busqueda, genero, autor, saga, idioma, orden, soloSinLeer])
+  }, [busqueda, genero, autor, saga, idioma, orden, soloSinLeer, soloFavoritos])
 
   async function cargar() {
     setCargando(true)
@@ -57,6 +58,7 @@ export default function Catalogo() {
         saga,
         idioma,
         leido: soloSinLeer ? false : undefined,
+        favorito: soloFavoritos ? true : undefined,
         ordenPor: opcionOrden.ordenPor,
         ordenAsc: opcionOrden.ordenAsc,
       })
@@ -66,6 +68,18 @@ export default function Catalogo() {
       setError('No se pudo cargar el catálogo. Revisá la conexión con Supabase.')
     } finally {
       setCargando(false)
+    }
+  }
+
+  async function handleToggleFavorito(e, libro) {
+    e.preventDefault()
+    e.stopPropagation()
+    // Actualización optimista: cambia en pantalla al toque y confirma contra la base después.
+    setLibros((prev) => prev.map((l) => (l.id === libro.id ? { ...l, favorito: !l.favorito } : l)))
+    try {
+      await actualizarLibro(libro.id, { favorito: !libro.favorito })
+    } catch (e) {
+      setLibros((prev) => prev.map((l) => (l.id === libro.id ? { ...l, favorito: libro.favorito } : l)))
     }
   }
 
@@ -82,7 +96,7 @@ export default function Catalogo() {
       <div className="filtros">
         <input
           type="text"
-          placeholder="Buscar por título..."
+          placeholder="Buscar por título, autor, ISBN, saga..."
           value={busqueda}
           onChange={(e) => setBusqueda(e.target.value)}
         />
@@ -103,6 +117,13 @@ export default function Catalogo() {
           type="button"
         >
           Sin leer
+        </button>
+        <button
+          className={`chip-filtro ${soloFavoritos ? 'activo' : ''}`}
+          onClick={() => setSoloFavoritos((v) => !v)}
+          type="button"
+        >
+          ★ Favoritos
         </button>
         <button
           className={`chip-filtro ${mostrarMasFiltros || hayFiltrosExtra ? 'activo' : ''}`}
@@ -157,6 +178,14 @@ export default function Catalogo() {
               <div className="sin-portada">Sin portada</div>
             )}
             {!libro.leido && <span className="badge-sin-leer">Sin leer</span>}
+            <button
+              type="button"
+              className={`estrella-card ${libro.favorito ? 'activa' : ''}`}
+              onClick={(e) => handleToggleFavorito(e, libro)}
+              aria-label={libro.favorito ? 'Quitar de favoritos' : 'Marcar como favorito'}
+            >
+              {libro.favorito ? '★' : '☆'}
+            </button>
             <div className="info">
               <strong>{libro.titulo}</strong>
               <span>{libro.autor}</span>

@@ -320,6 +320,28 @@ select:focus-visible {
   box-shadow: var(--sombra-sm);
   letter-spacing: 0.02em;
 }
+.estrella-card {
+  position: absolute;
+  top: 0.6rem;
+  left: 0.6rem;
+  background: var(--papel);
+  color: var(--borde-fuerte);
+  border: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  padding: 0;
+  font-size: 1.05rem;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--sombra-sm);
+  cursor: pointer;
+  transition: transform var(--transicion), color var(--transicion);
+}
+.estrella-card:hover { transform: scale(1.1); background: var(--papel); }
+.estrella-card.activa { color: #c99a2e; }
 
 .vacio {
   color: var(--tinta-tenue);
@@ -354,6 +376,21 @@ select:focus-visible {
 .detalle-header h2 { margin-top: 0; }
 .detalle-header p { margin: 0.35rem 0; font-size: 0.94rem; color: var(--tinta); }
 .detalle-header p strong { color: var(--tinta-suave); font-weight: 600; }
+
+.titulo-con-favorito { display: flex; align-items: center; gap: 0.6rem; }
+.titulo-con-favorito h2 { margin: 0; }
+.boton-favorito {
+  background: transparent;
+  border: none;
+  color: var(--borde-fuerte);
+  font-size: 1.5rem;
+  line-height: 1;
+  padding: 0;
+  cursor: pointer;
+  transition: transform var(--transicion), color var(--transicion);
+}
+.boton-favorito:hover { transform: scale(1.15); }
+.boton-favorito.activo { color: #c99a2e; }
 
 .boton-leido {
   margin-top: 0.8rem;
@@ -493,6 +530,18 @@ button:disabled { opacity: 0.6; cursor: not-allowed; }
   box-shadow: 0 0 0 3px var(--petroleo-tenue);
   background: var(--papel);
 }
+
+.aviso-duplicados {
+  background: var(--alerta-tenue);
+  border: 1px solid var(--alerta);
+  border-radius: var(--radio-chico);
+  padding: 0.9rem 1rem;
+  font-size: 0.9rem;
+}
+.aviso-duplicados p { margin: 0 0 0.5rem; color: var(--tinta); }
+.aviso-duplicados ul { margin: 0 0 0.8rem; padding-left: 1.1rem; }
+.aviso-duplicados li { margin-bottom: 0.2rem; }
+.aviso-duplicados a { color: var(--petroleo-oscuro); font-weight: 600; }
 
 .fieldset-extra {
   border: 1px dashed var(--borde-fuerte);
@@ -804,6 +853,63 @@ button:disabled { opacity: 0.6; cursor: not-allowed; }
 }
 .scanner-viewport video { width: 100%; display: block; }
 .scanner-ayuda { font-size: 0.85rem; color: var(--tinta-suave); text-align: center; margin: 0; }
+
+/* ---------- Etiquetas (tags) ---------- */
+.tags-libro {
+  background: var(--papel);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio);
+  padding: 1.2rem;
+  margin-top: 1.2rem;
+  box-shadow: var(--sombra-sm);
+}
+.tags-libro h3 { font-size: 1rem; color: var(--petroleo-oscuro); margin-bottom: 0.8rem; }
+.lista-tags { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
+.tag-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: var(--petroleo-tenue);
+  color: var(--petroleo-oscuro);
+  font-size: 0.82rem;
+  font-weight: 500;
+  padding: 0.35rem 0.5rem 0.35rem 0.75rem;
+  border-radius: 999px;
+}
+.tag-pill button {
+  background: transparent;
+  color: var(--petroleo-oscuro);
+  border: none;
+  padding: 0;
+  width: 16px;
+  height: 16px;
+  line-height: 1;
+  font-size: 0.95rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.tag-pill button:hover { background: rgba(47, 93, 98, 0.15); }
+.tag-agregar {
+  background: transparent;
+  color: var(--tinta-suave);
+  border: 1px dashed var(--borde-fuerte);
+  font-size: 0.82rem;
+  font-weight: 500;
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+}
+.tag-agregar:hover { border-color: var(--petroleo); color: var(--petroleo-oscuro); }
+.form-tag { display: flex; gap: 0.5rem; margin-top: 0.7rem; }
+.form-tag input {
+  padding: 0.5rem 0.7rem;
+  border-radius: var(--radio-chico);
+  border: 1px solid var(--borde-fuerte);
+  font-size: 0.88rem;
+  background: var(--crema);
+}
+.form-tag button { font-size: 0.85rem; padding: 0.5rem 0.9rem; }
 
 /* ---------- Responsive: sidebar se vuelve menú lateral desplegable ---------- */
 @media (max-width: 899px) {
