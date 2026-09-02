@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom'
 import { buscarPorIsbn } from '../lib/openLibrary'
 import { crearLibro, listarValoresFiltro, buscarPosiblesDuplicados } from '../lib/libros'
 import ScannerIsbn from '../components/ScannerIsbn.jsx'
+import { toast } from '../lib/toast'
 
 const LIBRO_VACIO = {
   titulo: '',
@@ -112,6 +113,7 @@ export default function AgregarLibro() {
         numero_saga: form.numero_saga === '' ? null : Number(form.numero_saga),
       })
       navigate('/')
+      toast('Libro agregado.')
     } catch (e) {
       setMensaje('No se pudo guardar el libro.')
     } finally {
@@ -196,7 +198,7 @@ export default function AgregarLibro() {
             checked={form.leido}
             onChange={(e) => handleChange('leido', e.target.checked)}
           />
-          Ya lo leí
+          Leído (general, sin especificar quién — para eso están los perfiles en el detalle)
         </label>
         <label className="check-leido">
           <input

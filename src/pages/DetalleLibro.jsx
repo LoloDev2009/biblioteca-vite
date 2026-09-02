@@ -3,6 +3,8 @@ import { useParams, useNavigate, Link } from 'react-router-dom'
 import { obtenerLibro, eliminarLibro, actualizarLibro } from '../lib/libros'
 import { prestarLibro, marcarDevuelto } from '../lib/prestamos'
 import TagsLibro from '../components/TagsLibro.jsx'
+import LecturasLibro from '../components/LecturasLibro.jsx'
+import { toast } from '../lib/toast'
 
 export default function DetalleLibro() {
   const { id } = useParams()
@@ -32,16 +34,13 @@ export default function DetalleLibro() {
     await prestarLibro(id, nombrePersona.trim())
     setNombrePersona('')
     cargar()
+    toast('Libro prestado.')
   }
 
   async function handleDevolver() {
     await marcarDevuelto(prestamoActivo.id)
     cargar()
-  }
-
-  async function handleToggleLeido() {
-    await actualizarLibro(id, { leido: !libro.leido })
-    cargar()
+    toast('Devolución registrada.')
   }
 
   async function handleToggleFavorito() {
@@ -50,9 +49,16 @@ export default function DetalleLibro() {
   }
 
   async function handleEliminar() {
-    if (!confirm('¿Seguro que querés borrar este libro?')) return
+    if (prestamoActivo) {
+      window.alert(
+        `No podés eliminar este libro: está prestado a ${prestamoActivo.nombre_persona}. Registrá la devolución primero.`
+      )
+      return
+    }
+    if (!window.confirm(`¿Eliminar "${libro.titulo}" de tu biblioteca? Esta acción no se puede deshacer.`)) return
     await eliminarLibro(id)
     navigate('/')
+    toast('Libro eliminado.')
   }
 
   if (error) return <p className="error">{error}</p>
@@ -83,15 +89,10 @@ export default function DetalleLibro() {
           <p><strong>Editorial:</strong> {libro.editorial || '—'}</p>
           <p><strong>ISBN:</strong> {libro.isbn || '—'}</p>
           <p><strong>Estante:</strong> {libro.estante || '—'}</p>
-          <button
-            className={`boton-leido ${libro.leido ? 'leido' : ''}`}
-            onClick={handleToggleLeido}
-            type="button"
-          >
-            {libro.leido ? '✓ Leído' : 'Marcar como leído'}
-          </button>
         </div>
       </div>
+
+      <LecturasLibro libroId={id} />
 
       <section className="prestamo-section">
         <h3>Préstamo</h3>
@@ -139,7 +140,7 @@ function SeccionDetalles({ libro }) {
     { etiqueta: 'Idioma', valor: libro.idioma },
     { etiqueta: 'Páginas', valor: libro.paginas },
     { etiqueta: 'Ejemplares', valor: libro.ejemplares_totales },
-    { etiqueta: 'Puntuación', valor: libro.puntuacion != null ? `${libro.puntuacion} / 5` : null },
+    { etiqueta: 'Puntuación general', valor: libro.puntuacion != null ? `${libro.puntuacion} / 5` : null },
   ].filter((d) => d.valor !== null && d.valor !== undefined && d.valor !== '')
 
   const tieneTextoLargo = libro.descripcion || libro.resena || libro.notas
@@ -170,7 +171,7 @@ function SeccionDetalles({ libro }) {
 
       {libro.resena && (
         <div className="bloque-texto">
-          <h4>Mi reseña</h4>
+          <h4>Reseña general</h4>
           <p>{libro.resena}</p>
         </div>
       )}

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { obtenerLibro, actualizarLibro, listarValoresFiltro } from '../lib/libros'
+import { toast } from '../lib/toast'
 
 export default function EditarLibro() {
   const { id } = useParams()
@@ -56,6 +57,7 @@ export default function EditarLibro() {
         notas: form.notas || null,
       })
       navigate(`/libro/${id}`)
+      toast('Libro actualizado.')
     } catch (e) {
       setMensaje('No se pudo guardar el cambio.')
     } finally {
@@ -113,7 +115,7 @@ export default function EditarLibro() {
             checked={!!form.leido}
             onChange={(e) => handleChange('leido', e.target.checked)}
           />
-          Ya lo leí
+          Leído (general, sin especificar quién — para eso están los perfiles en el detalle)
         </label>
         <label className="check-leido">
           <input

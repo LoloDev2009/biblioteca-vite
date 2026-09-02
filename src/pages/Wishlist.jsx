@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { listarWishlist, agregarAWishlist, eliminarDeWishlist, moverACatalogo } from '../lib/wishlist'
 import { buscarPorIsbn } from '../lib/openLibrary'
+import { toast } from '../lib/toast'
 
 const ITEM_VACIO = { titulo: '', autor: '', portada_url: '', genero: '', isbn: '', editorial: '', notas: '' }
 
@@ -44,18 +45,22 @@ export default function Wishlist() {
     setIsbn('')
     setMostrarForm(false)
     cargar()
+    toast('Agregado a la wishlist.')
   }
 
   async function handleConseguido(item) {
-    const estante = prompt(`¿En qué estante vas a poner "${item.titulo}"? (podés dejarlo vacío)`)
+    const estante = window.prompt(`¿En qué estante vas a poner "${item.titulo}"? (podés dejarlo vacío)`)
+    if (estante === null) return // canceló el prompt
     await moverACatalogo(item, { estante: estante || '' })
     cargar()
+    toast('Libro movido al catálogo.')
   }
 
   async function handleEliminar(id) {
-    if (!confirm('¿Sacar este libro de la wishlist?')) return
+    if (!window.confirm('¿Sacar este libro de la wishlist?')) return
     await eliminarDeWishlist(id)
     cargar()
+    toast('Quitado de la wishlist.')
   }
 
   return (
@@ -118,7 +123,14 @@ export default function Wishlist() {
 
       {cargando && <p>Cargando...</p>}
       {!cargando && items.length === 0 && (
-        <p className="vacio">Todavía no agregaste nada. La próxima vez que se te antoje un libro, anotalo acá.</p>
+        <p className="vacio">
+          Tu wishlist está vacía.{' '}
+          {!mostrarForm && (
+            <button type="button" className="link-inline" onClick={() => setMostrarForm(true)}>
+              Agregá el primero
+            </button>
+          )}
+        </p>
       )}
 
       <div className="grid-wishlist">

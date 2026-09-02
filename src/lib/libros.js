@@ -97,7 +97,7 @@ export async function buscarPosiblesDuplicados({ isbn, titulo, autor }) {
 // Trae los valores existentes de género/autor/saga/idioma para armar los
 // selects de filtro, sin que se achiquen a medida que el usuario filtra.
 export async function listarValoresFiltro() {
-  const { data, error } = await supabase.from('libros').select('genero, autor, saga, idioma')
+  const { data, error } = await supabase.from('libros').select('genero, autor, saga, idioma, estante')
   if (error) throw error
   return data
 }

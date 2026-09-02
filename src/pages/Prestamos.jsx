@@ -30,7 +30,7 @@ export default function Prestamos() {
   return (
     <div className="prestamos">
       <h2>Préstamos activos</h2>
-      {prestamos.length === 0 && <p className="vacio">No tenés libros prestados ahora mismo.</p>}
+      {prestamos.length === 0 && <p className="vacio">No tenés libros prestados.</p>}
 
       <ul className="lista-prestamos">
         {prestamos.map((p) => (
