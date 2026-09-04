@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { obtenerLibro, actualizarLibro, listarValoresFiltro } from '../lib/libros'
+import { toast } from '../lib/toast'
 
 export default function EditarLibro() {
   const { id } = useParams()
@@ -43,6 +44,7 @@ export default function EditarLibro() {
         isbn: form.isbn,
         estante: form.estante,
         leido: form.leido,
+        favorito: form.favorito,
         saga: form.saga || null,
         numero_saga: form.numero_saga === '' ? null : Number(form.numero_saga),
         anio_publicacion: form.anio_publicacion === '' ? null : Number(form.anio_publicacion),
@@ -55,6 +57,7 @@ export default function EditarLibro() {
         notas: form.notas || null,
       })
       navigate(`/libro/${id}`)
+      toast('Libro actualizado.')
     } catch (e) {
       setMensaje('No se pudo guardar el cambio.')
     } finally {
@@ -112,7 +115,15 @@ export default function EditarLibro() {
             checked={!!form.leido}
             onChange={(e) => handleChange('leido', e.target.checked)}
           />
-          Ya lo leí
+          Leído (general, sin especificar quién — para eso están los perfiles en el detalle)
+        </label>
+        <label className="check-leido">
+          <input
+            type="checkbox"
+            checked={!!form.favorito}
+            onChange={(e) => handleChange('favorito', e.target.checked)}
+          />
+          ★ Favorito
         </label>
 
         {form.portada_url && <img className="preview-portada" src={form.portada_url} alt="preview" />}

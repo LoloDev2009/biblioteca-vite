@@ -10,6 +10,19 @@ export async function listarPrestamosActivos() {
   return data
 }
 
+// Devuelve un mapa libro_id -> préstamo activo, para saber qué libros están
+// prestados ahora mismo (filtro de estado de préstamo y badges del catálogo).
+export async function listarPrestamosActivosPorLibro() {
+  const { data, error } = await supabase
+    .from('prestamos')
+    .select('id, libro_id, nombre_persona')
+    .is('fecha_devolucion', null)
+  if (error) throw error
+  const mapa = {}
+  for (const p of data) mapa[p.libro_id] = p
+  return mapa
+}
+
 export async function prestarLibro(libroId, nombrePersona) {
   const { data, error } = await supabase
     .from('prestamos')

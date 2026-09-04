@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import { buscarPorIsbn } from '../lib/openLibrary'
-import { crearLibro, listarValoresFiltro } from '../lib/libros'
+import { crearLibro, listarValoresFiltro, buscarPosiblesDuplicados } from '../lib/libros'
+import ScannerIsbn from '../components/ScannerIsbn.jsx'
+import { toast } from '../lib/toast'
 
 const LIBRO_VACIO = {
   titulo: '',
@@ -12,6 +14,7 @@ const LIBRO_VACIO = {
   estante: '',
   editorial: '',
   leido: false,
+  favorito: false,
   saga: '',
   numero_saga: '',
   anio_publicacion: '',
@@ -31,6 +34,9 @@ export default function AgregarLibro() {
   const [buscando, setBuscando] = useState(false)
   const [mensaje, setMensaje] = useState(null)
   const [guardando, setGuardando] = useState(false)
+  const [mostrarScanner, setMostrarScanner] = useState(false)
+  const [duplicados, setDuplicados] = useState([])
+  const [verificandoDup, setVerificandoDup] = useState(false)
   const [sugerencias, setSugerencias] = useState({ generos: [], autores: [], sagas: [], idiomas: [] })
 
   useEffect(() => {
@@ -44,17 +50,20 @@ export default function AgregarLibro() {
     })
   }, [])
 
-  async function handleBuscarIsbn() {
-    if (!isbn.trim()) return
+  async function handleBuscarIsbn(codigoManual) {
+    const codigo = (codigoManual ?? isbn).trim()
+    if (!codigo) return
     setBuscando(true)
     setMensaje(null)
     try {
-      const datos = await buscarPorIsbn(isbn.trim())
+      const datos = await buscarPorIsbn(codigo)
       if (datos) {
         setForm({ ...LIBRO_VACIO, ...datos })
+        setIsbn(codigo)
         setMensaje('Datos encontrados. Revisá y completá lo que falte.')
       } else {
-        setForm({ ...LIBRO_VACIO, isbn: isbn.trim() })
+        setForm({ ...LIBRO_VACIO, isbn: codigo })
+        setIsbn(codigo)
         setMensaje('No se encontró en Open Library. Completá los datos a mano.')
       }
     } catch (e) {
@@ -64,16 +73,35 @@ export default function AgregarLibro() {
     }
   }
 
+  function handleIsbnEscaneado(codigo) {
+    setMostrarScanner(false)
+    handleBuscarIsbn(codigo)
+  }
+
   function handleChange(campo, valor) {
     setForm((f) => ({ ...f, [campo]: valor }))
   }
 
-  async function handleGuardar(e) {
+  async function handleSubmit(e) {
     e.preventDefault()
     if (!form.titulo.trim()) {
       setMensaje('El título es obligatorio.')
       return
     }
+
+    setVerificandoDup(true)
+    const posibles = await buscarPosiblesDuplicados({ isbn: form.isbn, titulo: form.titulo, autor: form.autor })
+    setVerificandoDup(false)
+
+    if (posibles.length > 0) {
+      setDuplicados(posibles)
+      return // corta acá y espera que el usuario confirme si quiere seguir igual
+    }
+
+    await guardarLibro()
+  }
+
+  async function guardarLibro() {
     setGuardando(true)
     try {
       await crearLibro({
@@ -85,11 +113,17 @@ export default function AgregarLibro() {
         numero_saga: form.numero_saga === '' ? null : Number(form.numero_saga),
       })
       navigate('/')
+      toast('Libro agregado.')
     } catch (e) {
       setMensaje('No se pudo guardar el libro.')
     } finally {
       setGuardando(false)
     }
+  }
+
+  function handleAgregarIgual() {
+    setDuplicados([])
+    guardarLibro()
   }
 
   return (
@@ -103,14 +137,25 @@ export default function AgregarLibro() {
           value={isbn}
           onChange={(e) => setIsbn(e.target.value)}
         />
-        <button type="button" onClick={handleBuscarIsbn} disabled={buscando}>
+        <button type="button" onClick={() => handleBuscarIsbn()} disabled={buscando}>
           {buscando ? 'Buscando...' : 'Buscar'}
+        </button>
+        <button
+          type="button"
+          className="btn-secundario btn-escanear"
+          onClick={() => setMostrarScanner(true)}
+        >
+          📷 Escanear
         </button>
       </div>
 
+      {mostrarScanner && (
+        <ScannerIsbn onDetectado={handleIsbnEscaneado} onCerrar={() => setMostrarScanner(false)} />
+      )}
+
       {mensaje && <p className="mensaje">{mensaje}</p>}
 
-      <form onSubmit={handleGuardar} className="form-libro">
+      <form onSubmit={handleSubmit} className="form-libro">
         <label>
           Título *
           <input value={form.titulo} onChange={(e) => handleChange('titulo', e.target.value)} required />
@@ -153,7 +198,15 @@ export default function AgregarLibro() {
             checked={form.leido}
             onChange={(e) => handleChange('leido', e.target.checked)}
           />
-          Ya lo leí
+          Leído (general, sin especificar quién — para eso están los perfiles en el detalle)
+        </label>
+        <label className="check-leido">
+          <input
+            type="checkbox"
+            checked={form.favorito}
+            onChange={(e) => handleChange('favorito', e.target.checked)}
+          />
+          ★ Favorito
         </label>
 
         {form.portada_url && (
@@ -255,8 +308,29 @@ export default function AgregarLibro() {
           </label>
         </fieldset>
 
-        <button type="submit" disabled={guardando}>
-          {guardando ? 'Guardando...' : 'Guardar libro'}
+        {duplicados.length > 0 && (
+          <div className="aviso-duplicados">
+            <p><strong>Este libro ya existe en tu biblioteca:</strong></p>
+            <ul>
+              {duplicados.map((d) => (
+                <li key={d.id}>
+                  <Link to={`/libro/${d.id}`} target="_blank">
+                    {d.titulo}{d.autor ? ` — ${d.autor}` : ''}{d.isbn ? ` (ISBN ${d.isbn})` : ''}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+            <div className="acciones-form">
+              <button type="button" onClick={handleAgregarIgual}>Agregar de todas formas</button>
+              <button type="button" className="btn-secundario" onClick={() => setDuplicados([])}>
+                Cancelar
+              </button>
+            </div>
+          </div>
+        )}
+
+        <button type="submit" disabled={guardando || verificandoDup}>
+          {verificandoDup ? 'Verificando...' : guardando ? 'Guardando...' : 'Guardar libro'}
         </button>
       </form>
 

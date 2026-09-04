@@ -1,12 +1,19 @@
 import { useEffect, useState } from 'react'
 import { obtenerEstadisticas } from '../lib/libros'
+import { obtenerEstadisticasPorPerfil } from '../lib/lecturas'
 
 export default function Estadisticas() {
   const [stats, setStats] = useState(null)
+  const [statsPorPerfil, setStatsPorPerfil] = useState([])
   const [cargando, setCargando] = useState(true)
 
   useEffect(() => {
-    obtenerEstadisticas().then(setStats).finally(() => setCargando(false))
+    Promise.all([obtenerEstadisticas(), obtenerEstadisticasPorPerfil()])
+      .then(([generales, porPerfil]) => {
+        setStats(generales)
+        setStatsPorPerfil(porPerfil)
+      })
+      .finally(() => setCargando(false))
   }, [])
 
   if (cargando) return <p>Cargando...</p>
@@ -28,10 +35,41 @@ export default function Estadisticas() {
           valor={stats.promedioPuntuacion != null ? stats.promedioPuntuacion.toFixed(1) : '—'}
           etiqueta="Puntuación promedio"
         />
-        <MetricaCard valor={stats.paginasLeidas.toLocaleString('es-AR')} etiqueta="Páginas leídas" />
+        <MetricaCard valor={stats.paginasLeidas.toLocaleString('es-AR')} etiqueta="Páginas leídas (familia)" />
         <MetricaCard valor={stats.enWishlist} etiqueta="En la wishlist" />
         <MetricaCard valor={stats.prestamosActivos} etiqueta="Préstamos activos" />
       </div>
+
+      {statsPorPerfil.length > 0 && (
+        <div className="grid-perfiles-stats">
+          {statsPorPerfil.map(({ perfil, librosLeidos, paginasLeidas, promedioPuntuacion }) => (
+            <div key={perfil.id} className="perfil-stats-card">
+              <h3>{perfil.nombre}</h3>
+              <div className="perfil-stats-datos">
+                <div>
+                  <span className="metrica-valor chico">{librosLeidos}</span>
+                  <span className="metrica-etiqueta">Libros leídos</span>
+                </div>
+                <div>
+                  <span className="metrica-valor chico">{paginasLeidas.toLocaleString('es-AR')}</span>
+                  <span className="metrica-etiqueta">Páginas leídas</span>
+                </div>
+                <div>
+                  <span className="metrica-valor chico">
+                    {promedioPuntuacion != null ? promedioPuntuacion.toFixed(1) : '—'}
+                  </span>
+                  <span className="metrica-etiqueta">Puntuación prom.</span>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+      {statsPorPerfil.length === 0 && (
+        <p className="vacio">
+          Cargá a los integrantes de tu familia en "Familia" para ver estadísticas de lectura por persona.
+        </p>
+      )}
 
       <div className="grid-rankings">
         <div className="ranking-bloque">

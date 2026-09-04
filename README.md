@@ -8,7 +8,7 @@ App web responsive para catalogar los libros de tu casa y llevar registro de pr�
 1. Andá a https://supabase.com y creá una cuenta / proyecto nuevo (plan free).
 2. En el proyecto, andá a **SQL Editor** → **New query**, pegá el contenido de `schema.sql` y ejecutalo. Esto crea las tablas `libros`, `prestamos` y `wishlist`.
    - Si ya tenías la base creada de antes, en vez de `schema.sql` corré las migraciones en orden
-     (`migration_2.sql`, `migration_3.sql`, `migration_4.sql`) sin borrar nada de lo que ya tenés.
+     (`migration_2.sql`, `migration_3.sql`, `migration_4.sql`, `migration_5.sql`, `migration_6.sql`) sin borrar nada de lo que ya tenés.
 3. Andá a **Project Settings → API** y copiá:
    - `Project URL`
    - `anon public key` (en proyectos nuevos puede figurar como "Publishable key" — es lo mismo)
@@ -33,18 +33,25 @@ La app va a estar en `http://localhost:5173`.
 4. Deploy. Listo — accesible desde el celu y la PC.
 
 ## Funcionalidad
-- **Catálogo**: buscar por título, filtrar por género/autor/saga/idioma, ordenar (título, autor, año, puntuación, agregado recientemente), filtro "sin leer"
-- **Detalle de libro**: ver datos + sección de "más detalles" (saga, año, idioma, páginas, puntuación, descripción, reseña, notas), marcar leído/no leído, prestar y registrar devolución, editar, eliminar
-- **Editar / Agregar**: todos los campos, incluidos los extendidos, en una sección "Más detalles"
+- **UX**: notificaciones toast en las acciones principales (agregar, editar, prestar, devolver, marcar leído, eliminar), skeleton loading mientras carga el catálogo, estados vacíos con acciones directas (agregar primer libro, limpiar búsqueda), bloqueo de eliminación si el libro está prestado, y sidebar en 3 niveles según el ancho de pantalla (completo en desktop, solo íconos en tablet, menú desplegable en mobile)
+- **Familia / Perfiles**: cargá los integrantes que usan la biblioteca. Cada libro se puede marcar como "leído por" cada uno, con su propia puntuación y reseña — así una biblioteca compartida no depende de un único "leído: sí/no" que mezcla a todos
+- **Catálogo**: búsqueda multi-campo (título, autor, ISBN, saga, género, idioma, notas), sin distinguir mayúsculas ni acentos; filtros combinables de género/autor/saga/idioma/estante/estado de lectura/estado de préstamo/favoritos/leído por integrante; chips de filtros activos con opción de sacarlos uno por uno o todos juntos; orden configurable (título, autor, año, puntuación, agregado) que se recuerda entre sesiones; vista en cuadrícula o en lista (también recordada); menú de acciones rápidas por libro (marcar leído general, prestar, editar, eliminar) sin entrar al detalle; botón flotante de agregar en mobile
+- **Favoritos**: marcar/desmarcar con un clic desde la card del catálogo o desde el detalle, sin entrar a editar
+- **Etiquetas**: agregar tags libres a cada libro desde su detalle (se crean al vuelo si no existen)
+- **Detección de duplicados**: al agregar un libro, si ya existe uno con el mismo ISBN (en cualquier formato, 10 o 13 dígitos) o el mismo título+autor, avisa antes de guardar
+- **Detalle de libro**: ver datos + sección "¿Quién lo leyó?" (marcar/desmarcar por integrante, con puntuación y reseña propia de cada uno) + sección de "más detalles" (saga, año, idioma, páginas, puntuación general, descripción, reseña general, notas), marcar favorito, prestar y registrar devolución, editar, eliminar
+- **Editar / Agregar**: todos los campos, incluidos los extendidos, en una sección "Más detalles"; autocompletado por ISBN escaneando con la cámara o escribiendo el código a mano
 - **Estantes**: vista de estantería con los libros como lomos de colores, agrupados por estante
-- **Sagas**: libros agrupados por colección/saga, ordenados por año de publicación, con progreso de lectura
-- **Estadísticas**: total de libros, % leídos, páginas leídas, puntuación promedio, préstamos activos, en wishlist, géneros y autores más frecuentes
+- **Sagas**: libros agrupados por colección/saga, ordenados por N° de tomo (o año si no lo cargaste), con progreso de lectura
+- **Estadísticas**: total de libros, % leídos, páginas leídas de la familia, puntuación promedio, préstamos activos, en wishlist, géneros y autores más frecuentes, y un desglose de libros/páginas leídas y puntuación promedio **por integrante**
 - **Wishlist**: anotar libros que querés conseguir (con autocompletado por ISBN opcional); al conseguirlos, pasan al catálogo con un clic
 - **Préstamos**: listado de préstamos activos con devolución rápida
 
 ## Estructura
 ```
 src/
+  components/
+    ScannerIsbn.jsx     -> escaneo de código de barras (ISBN) con la cámara
   lib/
     supabase.js       -> cliente de Supabase
     libros.js          -> CRUD de libros + filtro leído + agrupado por estante
@@ -68,6 +75,12 @@ Si ya tenés libros cargados en otra base PostgreSQL, ver `scripts/README.md`
 para el paso a paso (migración de esquema + export CSV + script de importación).
 
 ## Notas
+- La columna `libros.leido` sigue existiendo, pero ahora se actualiza sola: pasa a `true` en
+  cuanto alguien queda marcado como lector en "¿Quién lo leyó?", y vuelve a `false` si se
+  sacan todas las lecturas. Sirve como cache rápido para el filtro "Sin leer" del catálogo.
+  Los campos `libros.puntuacion`/`libros.resena` quedan como el histórico general (por ejemplo,
+  lo que trajiste de la importación vieja) y no se tocan automáticamente; la puntuación y
+  reseña de cada integrante vive en la tabla `lecturas`.
 - Las políticas de RLS en `schema.sql` están abiertas (`using (true)`) porque es un proyecto
   personal sin login. Si en algún momento lo publicás con usuarios, hay que ajustarlas.
 - El campo `estante` no lo completa Open Library — siempre se ingresa a mano.
@@ -77,3 +90,12 @@ para el paso a paso (migración de esquema + export CSV + script de importación
   con navegación lateral fija en desktop/tablet y menú desplegable en mobile.
   Tipografía: Fraunces (títulos) e Inter (interfaz), cargadas desde Google Fonts
   — necesita conexión a internet para verse como corresponde.
+- El escaneo de ISBN con cámara necesita **HTTPS** (los navegadores bloquean el acceso a la
+  cámara en sitios sin HTTPS). En Vercel esto ya viene solo. En desarrollo local (`npm run dev`)
+  también funciona porque `localhost` cuenta como excepción — pero si probás la app desde el
+  celu apuntando a la IP de tu compu en la red local (no `localhost`), la cámara no va a andar
+  salvo que ese túnel también tenga HTTPS.
+- La búsqueda multi-campo usa la extensión `unaccent` de Postgres (la activa `migration_5.sql`
+  automáticamente). Si el `create extension` da error de permisos, activala a mano desde
+  **Database → Extensions** en el panel de Supabase, buscando "unaccent", y volvé a correr
+  el resto de la migración.

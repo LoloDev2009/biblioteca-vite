@@ -9,15 +9,18 @@ import Estantes from './pages/Estantes.jsx'
 import Wishlist from './pages/Wishlist.jsx'
 import Sagas from './pages/Sagas.jsx'
 import Estadisticas from './pages/Estadisticas.jsx'
+import Perfiles from './pages/Perfiles.jsx'
+import ToastHost from './components/ToastHost.jsx'
 
 const ENLACES_NAV = [
-  { to: '/', label: 'Catálogo', end: true },
-  { to: '/estantes', label: 'Estantes' },
-  { to: '/sagas', label: 'Sagas' },
-  { to: '/wishlist', label: 'Wishlist' },
-  { to: '/prestamos', label: 'Préstamos' },
-  { to: '/estadisticas', label: 'Estadísticas' },
-  { to: '/agregar', label: 'Agregar libro' },
+  { to: '/', label: 'Catálogo', icon: '📚', end: true },
+  { to: '/estantes', label: 'Estantes', icon: '🗄️' },
+  { to: '/sagas', label: 'Sagas', icon: '📖' },
+  { to: '/wishlist', label: 'Wishlist', icon: '⭐' },
+  { to: '/prestamos', label: 'Préstamos', icon: '🤝' },
+  { to: '/estadisticas', label: 'Estadísticas', icon: '📊' },
+  { to: '/perfiles', label: 'Familia', icon: '👪' },
+  { to: '/agregar', label: 'Agregar libro', icon: '➕' },
 ]
 
 export default function App() {
@@ -47,14 +50,16 @@ export default function App() {
 
       <aside className={`sidebar ${menuAbierto ? 'abierto' : ''}`}>
         <div className="marca-sidebar">
+          <span className="marca-icono" aria-hidden="true">📚</span>
           <span className="marca-titulo">Mi Biblioteca</span>
           <span className="marca-subtitulo">Catálogo personal</span>
         </div>
 
         <nav className="nav-sidebar" onClick={() => setMenuAbierto(false)}>
           {ENLACES_NAV.map((enlace) => (
-            <NavLink key={enlace.to} to={enlace.to} end={enlace.end}>
-              {enlace.label}
+            <NavLink key={enlace.to} to={enlace.to} end={enlace.end} title={enlace.label}>
+              <span className="nav-icono" aria-hidden="true">{enlace.icon}</span>
+              <span className="nav-etiqueta">{enlace.label}</span>
             </NavLink>
           ))}
         </nav>
@@ -73,8 +78,11 @@ export default function App() {
           <Route path="/sagas" element={<Sagas />} />
           <Route path="/wishlist" element={<Wishlist />} />
           <Route path="/estadisticas" element={<Estadisticas />} />
+          <Route path="/perfiles" element={<Perfiles />} />
         </Routes>
       </main>
+
+      <ToastHost />
     </div>
   )
 }
