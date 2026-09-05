@@ -15,6 +15,7 @@ CAMPO_SAGA = "saga"
 
 DETALLES_COPIABLES = {
     "numero_saga": "Número de saga",
+    "autor": "Autor",
     "idioma": "Idioma",
     "genero": "Género",
     "paginas": "Páginas",
