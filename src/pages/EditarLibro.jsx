@@ -109,22 +109,6 @@ export default function EditarLibro() {
           Estante
           <input value={form.estante || ''} onChange={(e) => handleChange('estante', e.target.value)} />
         </label>
-        <label className="check-leido">
-          <input
-            type="checkbox"
-            checked={!!form.leido}
-            onChange={(e) => handleChange('leido', e.target.checked)}
-          />
-          Leído (general, sin especificar quién — para eso están los perfiles en el detalle)
-        </label>
-        <label className="check-leido">
-          <input
-            type="checkbox"
-            checked={!!form.favorito}
-            onChange={(e) => handleChange('favorito', e.target.checked)}
-          />
-          ★ Favorito
-        </label>
 
         {form.portada_url && <img className="preview-portada" src={form.portada_url} alt="preview" />}
 
@@ -187,38 +171,11 @@ export default function EditarLibro() {
             </label>
           </div>
           <label>
-            Puntuación (0 a 5)
-            <input
-              type="number"
-              min="0"
-              max="5"
-              step="0.5"
-              value={form.puntuacion ?? ''}
-              onChange={(e) => handleChange('puntuacion', e.target.value)}
-            />
-          </label>
-          <label>
             Descripción
             <textarea
               rows={3}
               value={form.descripcion || ''}
               onChange={(e) => handleChange('descripcion', e.target.value)}
-            />
-          </label>
-          <label>
-            Mi reseña
-            <textarea
-              rows={3}
-              value={form.resena || ''}
-              onChange={(e) => handleChange('resena', e.target.value)}
-            />
-          </label>
-          <label>
-            Notas
-            <textarea
-              rows={2}
-              value={form.notas || ''}
-              onChange={(e) => handleChange('notas', e.target.value)}
             />
           </label>
         </fieldset>
