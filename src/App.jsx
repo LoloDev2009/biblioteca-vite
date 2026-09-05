@@ -10,23 +10,37 @@ import Wishlist from './pages/Wishlist.jsx'
 import Sagas from './pages/Sagas.jsx'
 import Estadisticas from './pages/Estadisticas.jsx'
 import Perfiles from './pages/Perfiles.jsx'
+import Login from './pages/Login.jsx'
+import Admin from './pages/Admin.jsx'
 import ToastHost from './components/ToastHost.jsx'
+import { useAuth } from './context/AuthContext.jsx'
 
 const ENLACES_NAV = [
-  { to: '/', label: 'Catálogo', icon: '📚', end: true },
-  { to: '/estantes', label: 'Estantes', icon: '🗄️' },
-  { to: '/sagas', label: 'Sagas', icon: '📖' },
-  { to: '/wishlist', label: 'Wishlist', icon: '⭐' },
-  { to: '/prestamos', label: 'Préstamos', icon: '🤝' },
-  { to: '/estadisticas', label: 'Estadísticas', icon: '📊' },
-  { to: '/perfiles', label: 'Familia', icon: '👪' },
-  { to: '/agregar', label: 'Agregar libro', icon: '➕' },
+  { to: '/', label: 'Catálogo', end: true },
+  { to: '/estantes', label: 'Estantes' },
+  { to: '/sagas', label: 'Sagas' },
+  { to: '/wishlist', label: 'Wishlist' },
+  { to: '/prestamos', label: 'Préstamos' },
+  { to: '/estadisticas', label: 'Estadísticas' },
+  { to: '/perfiles', label: 'Familia' },
+  { to: '/agregar', label: 'Agregar libro' },
 ]
 
 export default function App() {
   // Estado puramente de presentación: controla si el menú lateral
   // está abierto en pantallas chicas. No afecta rutas ni datos.
   const [menuAbierto, setMenuAbierto] = useState(false)
+  const { session, familia, cargando, cerrarSesion, esAdmin } = useAuth()
+
+  if (session === undefined || (session && cargando)) {
+    return <div className="pantalla-carga">Cargando...</div>
+  }
+
+  if (!session) {
+    return <Login />
+  }
+
+  const enlaces = esAdmin ? [...ENLACES_NAV, { to: '/admin', label: 'Administración' }] : ENLACES_NAV
 
   return (
     <div className="app-shell">
@@ -50,20 +64,21 @@ export default function App() {
 
       <aside className={`sidebar ${menuAbierto ? 'abierto' : ''}`}>
         <div className="marca-sidebar">
-          <span className="marca-icono" aria-hidden="true">📚</span>
           <span className="marca-titulo">Mi Biblioteca</span>
-          <span className="marca-subtitulo">Catálogo personal</span>
+          <span className="marca-subtitulo">{familia?.nombre || 'Catálogo personal'}</span>
         </div>
 
         <nav className="nav-sidebar" onClick={() => setMenuAbierto(false)}>
-          {ENLACES_NAV.map((enlace) => (
-            <NavLink key={enlace.to} to={enlace.to} end={enlace.end} title={enlace.label}>
-              <span className="nav-icono" aria-hidden="true">{enlace.icon}</span>
-              <span className="nav-etiqueta">{enlace.label}</span>
+          {enlaces.map((enlace) => (
+            <NavLink key={enlace.to} to={enlace.to} end={enlace.end}>
+              {enlace.label}
             </NavLink>
           ))}
         </nav>
 
+        <button type="button" className="boton-cerrar-sesion" onClick={cerrarSesion}>
+          Cerrar sesión
+        </button>
         <div className="pie-sidebar">Tu biblioteca, siempre a mano</div>
       </aside>
 
@@ -79,6 +94,7 @@ export default function App() {
           <Route path="/wishlist" element={<Wishlist />} />
           <Route path="/estadisticas" element={<Estadisticas />} />
           <Route path="/perfiles" element={<Perfiles />} />
+          <Route path="/admin" element={<Admin />} />
         </Routes>
       </main>
 

@@ -97,7 +97,6 @@ select:focus-visible {
 }
 
 .marca-sidebar { margin-bottom: 2rem; padding: 0 0.4rem; }
-.marca-icono { display: none; font-size: 1.6rem; }
 .marca-titulo {
   display: block;
   font-family: 'Fraunces', serif;
@@ -120,9 +119,7 @@ select:focus-visible {
   flex: 1;
 }
 .nav-sidebar a {
-  display: flex;
-  align-items: center;
-  gap: 0.7rem;
+  display: block;
   text-decoration: none;
   color: var(--tinta-suave);
   font-size: 0.95rem;
@@ -132,7 +129,6 @@ select:focus-visible {
   border-left: 3px solid transparent;
   transition: background var(--transicion), color var(--transicion), border-color var(--transicion);
 }
-.nav-icono { font-size: 1.05rem; width: 1.2rem; text-align: center; flex-shrink: 0; }
 .nav-sidebar a:hover {
   background: rgba(47, 93, 98, 0.07);
   color: var(--petroleo-oscuro);
@@ -1231,19 +1227,140 @@ button:disabled { opacity: 0.6; cursor: not-allowed; }
 .skeleton-fila-textos { flex: 1; display: flex; flex-direction: column; gap: 0.5rem; }
 .skeleton-fila-textos .skeleton-linea { height: 0.75rem; }
 
+/* ---------- Login ---------- */
+.pantalla-carga {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--tinta-suave);
+  background: var(--crema);
+}
+.pantalla-login {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--crema-sidebar);
+  padding: 1.5rem;
+}
+.card-login {
+  background: var(--papel);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio);
+  padding: 2rem;
+  width: 100%;
+  max-width: 380px;
+  box-shadow: var(--sombra-lg);
+}
+.card-login h1 {
+  font-size: 1.4rem;
+  color: var(--madera-oscura);
+  text-align: center;
+  margin-bottom: 1.4rem;
+}
+.aviso-invitacion {
+  background: var(--petroleo-tenue);
+  color: var(--petroleo-oscuro);
+  font-size: 0.85rem;
+  padding: 0.6rem 0.8rem;
+  border-radius: var(--radio-chico);
+  margin-bottom: 1.2rem;
+  text-align: center;
+}
+.tabs-login { display: flex; border: 1px solid var(--borde-fuerte); border-radius: var(--radio-chico); overflow: hidden; margin-bottom: 1.2rem; }
+.tabs-login button {
+  flex: 1;
+  background: var(--papel);
+  color: var(--tinta-suave);
+  border: none;
+  border-radius: 0;
+  padding: 0.6rem;
+  font-size: 0.85rem;
+}
+.tabs-login button + button { border-left: 1px solid var(--borde-fuerte); }
+.tabs-login button.activo { background: var(--petroleo); color: white; }
+.mensaje-login { font-size: 0.85rem; padding: 0.6rem 0.8rem; border-radius: var(--radio-chico); margin-bottom: 1rem; }
+.mensaje-login.exito { background: var(--oliva-tenue); color: var(--oliva-oscuro); }
+.mensaje-login.error { background: var(--alerta-tenue); color: var(--alerta); }
+.form-login { display: flex; flex-direction: column; gap: 0.9rem; }
+.form-login label { display: flex; flex-direction: column; gap: 0.3rem; font-size: 0.85rem; color: var(--tinta-suave); font-weight: 600; }
+.form-login input {
+  padding: 0.65rem 0.85rem;
+  border-radius: var(--radio-chico);
+  border: 1px solid var(--borde-fuerte);
+  font-size: 1rem;
+  background: var(--crema);
+}
+.form-login input:focus { border-color: var(--petroleo); outline: none; box-shadow: 0 0 0 3px var(--petroleo-tenue); }
+
+/* ---------- Cerrar sesión / invitaciones ---------- */
+.boton-cerrar-sesion {
+  background: transparent;
+  color: var(--alerta);
+  border: 1px solid var(--alerta);
+  font-size: 0.82rem;
+  margin-top: 0.5rem;
+}
+.boton-cerrar-sesion:hover { background: var(--alerta-tenue); }
+
+.seccion-invitacion {
+  background: var(--papel);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio);
+  padding: 1.2rem;
+  margin-bottom: 1.6rem;
+  box-shadow: var(--sombra-sm);
+  max-width: 520px;
+}
+.seccion-invitacion h3 { font-size: 1rem; color: var(--petroleo-oscuro); margin-bottom: 0.4rem; }
+.titulo-seccion-perfiles { color: var(--madera-oscura); margin-top: 0.5rem; }
+.caja-invitacion { margin-top: 0.8rem; }
+.caja-invitacion code {
+  display: block;
+  background: var(--crema);
+  border: 1px solid var(--borde-fuerte);
+  border-radius: var(--radio-chico);
+  padding: 0.6rem 0.8rem;
+  font-size: 0.82rem;
+  word-break: break-all;
+  margin-bottom: 0.6rem;
+}
+.acciones-invitacion { display: flex; gap: 0.6rem; flex-wrap: wrap; }
+.acciones-invitacion button { font-size: 0.82rem; }
+
+/* ---------- Panel de administración ---------- */
+.admin h2 { color: var(--madera-oscura); }
+.tabla-admin-wrap {
+  overflow-x: auto;
+  background: var(--papel);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio);
+  box-shadow: var(--sombra-sm);
+}
+.tabla-admin { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+.tabla-admin th, .tabla-admin td { padding: 0.75rem 0.9rem; text-align: left; white-space: nowrap; }
+.tabla-admin th {
+  color: var(--tinta-suave);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  border-bottom: 1px solid var(--borde);
+}
+.tabla-admin tbody tr { border-bottom: 1px solid var(--borde); }
+.tabla-admin tbody tr:last-child { border-bottom: none; }
+.tabla-admin tbody tr.fila-inactiva { opacity: 0.55; }
+.tabla-admin td button { font-size: 0.78rem; padding: 0.4rem 0.7rem; }
+
 /* ---------- Responsive: 3 niveles ----------
-   Desktop (>=1000px): sidebar completo con texto.
-   Tablet (700-999px): sidebar angosto, solo iconos, siempre visible.
+   Desktop (>=1000px): sidebar completo.
+   Tablet (700-999px): sidebar más angosto, con texto más chico.
    Mobile (<700px): sidebar se convierte en menú desplegable + topbar. */
 
 @media (min-width: 700px) and (max-width: 999px) {
-  .sidebar { width: 76px; padding: 1.2rem 0.4rem; align-items: center; }
-  .marca-sidebar { display: flex; justify-content: center; padding: 0; margin-bottom: 1.6rem; }
-  .marca-icono { display: block; }
-  .marca-titulo, .marca-subtitulo, .pie-sidebar, .nav-etiqueta { display: none; }
-  .nav-sidebar a { justify-content: center; padding: 0.7rem; border-left: none; border-radius: var(--radio-chico); }
-  .nav-sidebar a.active { border-left: none; box-shadow: inset 0 0 0 1.5px var(--petroleo); }
-  .nav-icono { font-size: 1.25rem; width: auto; }
+  .sidebar { width: 190px; padding: 1.4rem 0.9rem; }
+  .marca-titulo { font-size: 1.1rem; }
+  .nav-sidebar a { font-size: 0.88rem; padding: 0.55rem 0.7rem; }
 
   .content { padding: 1.4rem 1.6rem; }
   .grid-libros { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }

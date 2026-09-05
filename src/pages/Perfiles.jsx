@@ -1,10 +1,15 @@
 import { useEffect, useState } from 'react'
 import { listarPerfiles, crearPerfil, renombrarPerfil, eliminarPerfil } from '../lib/perfiles'
+import { regenerarCodigoInvitacion } from '../lib/auth'
+import { useAuth } from '../context/AuthContext.jsx'
+import { toast } from '../lib/toast'
 
 export default function Perfiles() {
+  const { familia, rol, recargarMembresia } = useAuth()
   const [perfiles, setPerfiles] = useState([])
   const [nombre, setNombre] = useState('')
   const [cargando, setCargando] = useState(true)
+  const [regenerando, setRegenerando] = useState(false)
 
   useEffect(() => {
     cargar()
@@ -16,6 +21,27 @@ export default function Perfiles() {
       setPerfiles(await listarPerfiles())
     } finally {
       setCargando(false)
+    }
+  }
+
+  const linkInvitacion = familia
+    ? `${window.location.origin}/login?invite=${familia.codigo_invitacion}`
+    : ''
+
+  async function handleCopiarLink() {
+    await navigator.clipboard.writeText(linkInvitacion)
+    toast('Link copiado.')
+  }
+
+  async function handleRegenerar() {
+    if (!window.confirm('El link de invitación anterior va a dejar de funcionar. ¿Continuar?')) return
+    setRegenerando(true)
+    try {
+      await regenerarCodigoInvitacion(familia.id)
+      await recargarMembresia()
+      toast('Nuevo link generado.')
+    } finally {
+      setRegenerando(false)
     }
   }
 
@@ -47,8 +73,33 @@ export default function Perfiles() {
 
   return (
     <div className="perfiles">
-      <h2>Integrantes de la familia</h2>
-      <p className="ayuda-perfiles">Cargá quiénes usan la biblioteca para poder marcar quién leyó cada libro.</p>
+      <h2>Familia</h2>
+
+      <section className="seccion-invitacion">
+        <h3>Invitar gente a tu cuenta</h3>
+        <p className="ayuda-perfiles">
+          Quien entre con este link va a acceder a la misma biblioteca que vos, con su propio login.
+        </p>
+        {familia && (
+          <div className="caja-invitacion">
+            <code>{linkInvitacion}</code>
+            <div className="acciones-invitacion">
+              <button type="button" onClick={handleCopiarLink}>Copiar link</button>
+              {rol === 'dueño' && (
+                <button type="button" className="btn-secundario" onClick={handleRegenerar} disabled={regenerando}>
+                  {regenerando ? 'Generando...' : 'Generar otro código'}
+                </button>
+              )}
+            </div>
+          </div>
+        )}
+      </section>
+
+      <h3 className="titulo-seccion-perfiles">Perfiles de lectura</h3>
+      <p className="ayuda-perfiles">
+        Estos no necesitan cuenta propia — sirven para marcar quién leyó cada libro (útil para chicos u otros
+        integrantes que no van a loguearse).
+      </p>
 
       <form onSubmit={handleAgregar} className="form-perfil">
         <input placeholder="Nombre" value={nombre} onChange={(e) => setNombre(e.target.value)} />
