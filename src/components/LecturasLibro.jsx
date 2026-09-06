@@ -3,41 +3,74 @@ import { Link } from 'react-router-dom'
 import { listarPerfiles } from '../lib/perfiles'
 import { listarLecturasDeLibro, marcarLeidoPor, quitarLecturaDe, actualizarLectura } from '../lib/lecturas'
 import { toast } from '../lib/toast'
+import ModalConfirmacion from './ModalConfirmacion.jsx'
+import ErrorState from './ErrorState.jsx'
+import { LoadingSeccion } from './Loading.jsx'
 
 export default function LecturasLibro({ libroId }) {
   const [perfiles, setPerfiles] = useState([])
   const [lecturas, setLecturas] = useState([])
   const [expandidoId, setExpandidoId] = useState(null)
   const [cargando, setCargando] = useState(true)
+  const [error, setError] = useState(null)
+  const [perfilAQuitar, setPerfilAQuitar] = useState(null)
+  const [quitando, setQuitando] = useState(false)
 
   useEffect(() => {
     cargar()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [libroId])
 
   async function cargar() {
     setCargando(true)
-    const [p, l] = await Promise.all([listarPerfiles(), listarLecturasDeLibro(libroId)])
-    setPerfiles(p)
-    setLecturas(l)
-    setCargando(false)
+    setError(null)
+    try {
+      const [p, l] = await Promise.all([listarPerfiles(), listarLecturasDeLibro(libroId)])
+      setPerfiles(p)
+      setLecturas(l)
+    } catch (err) {
+      console.error('cargar (LecturasLibro):', err)
+      setError('No pudimos cargar quién leyó este libro.')
+    } finally {
+      setCargando(false)
+    }
   }
 
   async function handleMarcar(perfilId) {
-    await marcarLeidoPor(libroId, perfilId)
-    cargar()
-    const perfil = perfiles.find((p) => p.id === perfilId)
-    toast(`Marcado como leído por ${perfil?.nombre || 'ese integrante'}.`)
+    try {
+      await marcarLeidoPor(libroId, perfilId)
+      await cargar()
+      const perfil = perfiles.find((p) => p.id === perfilId)
+      toast.success(`Marcado como leído por ${perfil?.nombre || 'ese integrante'}.`)
+    } catch (err) {
+      console.error('handleMarcar (LecturasLibro):', err)
+      toast.error('No pudimos marcar la lectura.')
+    }
   }
 
-  async function handleQuitar(perfilId) {
-    if (!window.confirm('¿Quitar esta lectura? Si tenía puntuación o reseña propia, también se borran.')) return
+  function handleQuitar(perfil) {
     setExpandidoId(null)
-    await quitarLecturaDe(libroId, perfilId)
-    cargar()
-    toast('Lectura quitada.')
+    setPerfilAQuitar(perfil)
   }
 
-  if (cargando) return null
+  async function confirmarQuitar() {
+    setQuitando(true)
+    try {
+      await quitarLecturaDe(libroId, perfilAQuitar.id)
+      setPerfilAQuitar(null)
+      await cargar()
+      toast.success('Lectura quitada.')
+    } catch (err) {
+      console.error('confirmarQuitar (LecturasLibro):', err)
+      toast.error('No pudimos quitar la lectura.')
+    } finally {
+      setQuitando(false)
+    }
+  }
+
+  if (cargando) return <LoadingSeccion texto="Cargando lecturas..." />
+
+  if (error) return <ErrorState descripcion={error} onRetry={cargar} />
 
   if (perfiles.length === 0) {
     return (
@@ -69,12 +102,23 @@ export default function LecturasLibro({ libroId }) {
                 {lectura ? '✓ ' : '+ '}{perfil.nombre}
               </button>
               {lectura && expandidoId === perfil.id && (
-                <FormLectura lectura={lectura} onGuardado={cargar} onQuitar={() => handleQuitar(perfil.id)} />
+                <FormLectura lectura={lectura} onGuardado={cargar} onQuitar={() => handleQuitar(perfil)} />
               )}
             </div>
           )
         })}
       </div>
+
+      <ModalConfirmacion
+        abierto={!!perfilAQuitar}
+        titulo="Quitar lectura"
+        descripcion="¿Quitar esta lectura? Si tenía puntuación o reseña propia, también se borran."
+        textoConfirmar="Quitar"
+        variante="danger"
+        loading={quitando}
+        onCancelar={() => setPerfilAQuitar(null)}
+        onConfirmar={confirmarQuitar}
+      />
     </div>
   )
 }
@@ -85,6 +129,7 @@ function FormLectura({ lectura, onGuardado, onQuitar }) {
   const [guardando, setGuardando] = useState(false)
 
   async function handleGuardar() {
+    if (guardando) return
     setGuardando(true)
     try {
       await actualizarLectura(lectura.id, {
@@ -92,7 +137,10 @@ function FormLectura({ lectura, onGuardado, onQuitar }) {
         resena: resena || null,
       })
       onGuardado()
-      toast('Guardado.')
+      toast.success('Guardado.')
+    } catch (err) {
+      console.error('handleGuardar (FormLectura):', err)
+      toast.error('No pudimos guardar los cambios.')
     } finally {
       setGuardando(false)
     }

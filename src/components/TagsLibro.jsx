@@ -1,37 +1,58 @@
 import { useEffect, useState } from 'react'
 import { listarTags, listarTagsDeLibro, crearTag, agregarTagALibro, quitarTagDeLibro } from '../lib/tags'
+import { toast } from '../lib/toast'
 
 export default function TagsLibro({ libroId }) {
   const [tags, setTags] = useState([])
   const [todasLasTags, setTodasLasTags] = useState([])
   const [mostrarInput, setMostrarInput] = useState(false)
   const [nuevaTag, setNuevaTag] = useState('')
+  const [guardando, setGuardando] = useState(false)
 
   useEffect(() => {
     cargar()
-    listarTags().then(setTodasLasTags)
+    listarTags().then(setTodasLasTags).catch((err) => console.error('listarTags:', err))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [libroId])
 
   async function cargar() {
-    setTags(await listarTagsDeLibro(libroId))
+    try {
+      setTags(await listarTagsDeLibro(libroId))
+    } catch (err) {
+      console.error('cargar (TagsLibro):', err)
+      toast.error('No pudimos cargar las etiquetas.')
+    }
   }
 
   async function handleAgregar(e) {
     e.preventDefault()
-    if (!nuevaTag.trim()) return
-    const tag = await crearTag(nuevaTag)
-    if (tag) {
-      await agregarTagALibro(libroId, tag.id)
-      setNuevaTag('')
-      setMostrarInput(false)
-      cargar()
-      listarTags().then(setTodasLasTags)
+    if (!nuevaTag.trim() || guardando) return
+    setGuardando(true)
+    try {
+      const tag = await crearTag(nuevaTag)
+      if (tag) {
+        await agregarTagALibro(libroId, tag.id)
+        setNuevaTag('')
+        setMostrarInput(false)
+        await cargar()
+        listarTags().then(setTodasLasTags).catch((err) => console.error('listarTags:', err))
+      }
+    } catch (err) {
+      console.error('handleAgregar (TagsLibro):', err)
+      toast.error('No pudimos agregar la etiqueta.')
+    } finally {
+      setGuardando(false)
     }
   }
 
   async function handleQuitar(tagId) {
-    await quitarTagDeLibro(libroId, tagId)
-    cargar()
+    try {
+      await quitarTagDeLibro(libroId, tagId)
+      await cargar()
+    } catch (err) {
+      console.error('handleQuitar (TagsLibro):', err)
+      toast.error('No pudimos quitar la etiqueta.')
+    }
   }
 
   return (
@@ -60,6 +81,7 @@ export default function TagsLibro({ libroId }) {
             placeholder="favorito, para-leer..."
             value={nuevaTag}
             onChange={(e) => setNuevaTag(e.target.value)}
+            disabled={guardando}
             onBlur={() => {
               if (!nuevaTag.trim()) setMostrarInput(false)
             }}
@@ -69,7 +91,7 @@ export default function TagsLibro({ libroId }) {
               <option key={t.id} value={t.nombre} />
             ))}
           </datalist>
-          <button type="submit">Agregar</button>
+          <button type="submit" disabled={guardando}>{guardando ? 'Agregando...' : 'Agregar'}</button>
         </form>
       )}
     </div>

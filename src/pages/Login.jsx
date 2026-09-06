@@ -54,10 +54,18 @@ export default function Login() {
         <h1>Mi Biblioteca</h1>
 
         <div className="tabs-login">
-          <button type="button" className={modo === 'magic' ? 'activo' : ''} onClick={() => setModo('magic')}>
+          <button
+            type="button"
+            className={modo === 'magic' ? 'activo' : ''}
+            onClick={() => { setModo('magic'); setMensaje(null); setError(null) }}
+          >
             Link mágico
           </button>
-          <button type="button" className={modo === 'password' ? 'activo' : ''} onClick={() => setModo('password')}>
+          <button
+            type="button"
+            className={modo === 'password' ? 'activo' : ''}
+            onClick={() => { setModo('password'); setMensaje(null); setError(null) }}
+          >
             Contraseña
           </button>
         </div>
@@ -110,7 +118,11 @@ export default function Login() {
             <button
               type="button"
               className="btn-secundario"
-              onClick={() => setModoPassword(modoPassword === 'crear' ? 'entrar' : 'crear')}
+              onClick={() => {
+                setModoPassword(modoPassword === 'crear' ? 'entrar' : 'crear')
+                setMensaje(null)
+                setError(null)
+              }}
             >
               {modoPassword === 'crear' ? '¿Ya tenés cuenta? Entrar' : '¿No tenés cuenta? Crear una'}
             </button>

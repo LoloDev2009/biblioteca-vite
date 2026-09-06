@@ -1,10 +1,23 @@
 import { useEffect, useState } from 'react'
 import { listarPerfiles, crearPerfil, renombrarPerfil, eliminarPerfil } from '../lib/perfiles'
+import { toast } from '../lib/toast'
+import ModalConfirmacion from '../components/ModalConfirmacion.jsx'
+import ModalInput from '../components/ModalInput.jsx'
+import EmptyState from '../components/EmptyState.jsx'
+import ErrorState from '../components/ErrorState.jsx'
+import { LoadingPagina } from '../components/Loading.jsx'
 
 export default function Perfiles() {
   const [perfiles, setPerfiles] = useState([])
   const [nombre, setNombre] = useState('')
   const [cargando, setCargando] = useState(true)
+  const [error, setError] = useState(null)
+  const [creando, setCreando] = useState(false)
+  const [perfilARenombrar, setPerfilARenombrar] = useState(null)
+  const [nuevoNombre, setNuevoNombre] = useState('')
+  const [renombrando, setRenombrando] = useState(false)
+  const [perfilAEliminar, setPerfilAEliminar] = useState(null)
+  const [eliminando, setEliminando] = useState(false)
 
   useEffect(() => {
     cargar()
@@ -12,8 +25,12 @@ export default function Perfiles() {
 
   async function cargar() {
     setCargando(true)
+    setError(null)
     try {
       setPerfiles(await listarPerfiles())
+    } catch (err) {
+      console.error('cargar (Perfiles):', err)
+      setError('No pudimos cargar los perfiles.')
     } finally {
       setCargando(false)
     }
@@ -21,28 +38,62 @@ export default function Perfiles() {
 
   async function handleAgregar(e) {
     e.preventDefault()
-    if (!nombre.trim()) return
-    await crearPerfil(nombre)
-    setNombre('')
-    cargar()
+    if (!nombre.trim() || creando) return
+    setCreando(true)
+    try {
+      await crearPerfil(nombre)
+      setNombre('')
+      await cargar()
+      toast.success('Perfil agregado.')
+    } catch (err) {
+      console.error('handleAgregar (Perfiles):', err)
+      toast.error('No pudimos agregar el perfil.')
+    } finally {
+      setCreando(false)
+    }
   }
 
-  async function handleRenombrar(perfil) {
-    const nuevo = window.prompt('Nuevo nombre', perfil.nombre)
-    if (!nuevo?.trim() || nuevo.trim() === perfil.nombre) return
-    await renombrarPerfil(perfil.id, nuevo)
-    cargar()
+  function handleRenombrar(perfil) {
+    setNuevoNombre(perfil.nombre)
+    setPerfilARenombrar(perfil)
   }
 
-  async function handleEliminar(perfil) {
-    if (
-      !window.confirm(
-        `¿Eliminar a "${perfil.nombre}"? Se van a borrar también las lecturas que tenga marcadas (con su puntuación y reseña propia).`
-      )
-    )
+  async function confirmarRenombrar() {
+    if (nuevoNombre.trim() === perfilARenombrar.nombre) {
+      setPerfilARenombrar(null)
       return
-    await eliminarPerfil(perfil.id)
-    cargar()
+    }
+    setRenombrando(true)
+    try {
+      await renombrarPerfil(perfilARenombrar.id, nuevoNombre)
+      setPerfilARenombrar(null)
+      await cargar()
+      toast.success('Perfil renombrado.')
+    } catch (err) {
+      console.error('confirmarRenombrar:', err)
+      toast.error('No pudimos renombrar el perfil.')
+    } finally {
+      setRenombrando(false)
+    }
+  }
+
+  function handleEliminar(perfil) {
+    setPerfilAEliminar(perfil)
+  }
+
+  async function confirmarEliminacion() {
+    setEliminando(true)
+    try {
+      await eliminarPerfil(perfilAEliminar.id)
+      setPerfilAEliminar(null)
+      await cargar()
+      toast.success('Perfil eliminado.')
+    } catch (err) {
+      console.error('confirmarEliminacion (Perfiles):', err)
+      toast.error('No pudimos eliminar el perfil.')
+    } finally {
+      setEliminando(false)
+    }
   }
 
   return (
@@ -55,13 +106,20 @@ export default function Perfiles() {
       </p>
 
       <form onSubmit={handleAgregar} className="form-perfil">
-        <input placeholder="Nombre" value={nombre} onChange={(e) => setNombre(e.target.value)} />
-        <button type="submit">Agregar</button>
+        <input placeholder="Nombre" value={nombre} onChange={(e) => setNombre(e.target.value)} disabled={creando} />
+        <button type="submit" disabled={creando}>{creando ? 'Agregando...' : 'Agregar'}</button>
       </form>
 
-      {cargando && <p>Cargando...</p>}
-      {!cargando && perfiles.length === 0 && (
-        <p className="vacio">Todavía no agregaste a nadie. Sumá el primer perfil arriba.</p>
+      {error && !cargando && <ErrorState descripcion={error} onRetry={cargar} />}
+
+      {cargando && <LoadingPagina texto="Cargando perfiles..." />}
+
+      {!cargando && !error && perfiles.length === 0 && (
+        <EmptyState
+          icono="🧑‍🤝‍🧑"
+          titulo="Todavía no agregaste a nadie"
+          descripcion="Sumá el primer perfil de lectura arriba para poder marcar quién leyó cada libro."
+        />
       )}
 
       <div className="lista-perfiles">
@@ -79,6 +137,33 @@ export default function Perfiles() {
           </div>
         ))}
       </div>
+
+      <ModalInput
+        abierto={!!perfilARenombrar}
+        titulo="Renombrar perfil"
+        label="Nombre"
+        valor={nuevoNombre}
+        onChange={setNuevoNombre}
+        onCancelar={() => setPerfilARenombrar(null)}
+        onConfirmar={confirmarRenombrar}
+        textoConfirmar="Guardar"
+        loading={renombrando}
+      />
+
+      <ModalConfirmacion
+        abierto={!!perfilAEliminar}
+        titulo="Eliminar perfil"
+        descripcion={
+          perfilAEliminar
+            ? `¿Eliminar a "${perfilAEliminar.nombre}"? Se van a borrar también las lecturas que tenga marcadas (con su puntuación y reseña propia).`
+            : ''
+        }
+        textoConfirmar="Eliminar"
+        variante="danger"
+        loading={eliminando}
+        onCancelar={() => setPerfilAEliminar(null)}
+        onConfirmar={confirmarEliminacion}
+      />
     </div>
   )
 }

@@ -28,6 +28,7 @@
   --oliva-tenue: #eef1e6;
 
   --alerta: #ac4a3c;
+  --alerta-oscuro: #8a3a2f;
   --alerta-tenue: #f7e9e5;
 
   --sombra-sm: 0 1px 3px rgba(42, 36, 32, 0.08);
@@ -1227,6 +1228,136 @@ button:disabled { opacity: 0.6; cursor: not-allowed; }
 .skeleton-fila-textos { flex: 1; display: flex; flex-direction: column; gap: 0.5rem; }
 .skeleton-fila-textos .skeleton-linea { height: 0.75rem; }
 
+/* ---------- Botón danger sólido (acciones destructivas en modales) ---------- */
+.btn-danger {
+  background: var(--alerta);
+  color: white;
+  border: none;
+}
+.btn-danger:hover { background: var(--alerta-oscuro); }
+
+/* ---------- Modal (ModalConfirmacion / ModalInput) ---------- */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(42, 36, 32, 0.45);
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.2rem;
+  animation: aparecer 0.15s ease;
+}
+.modal-caja {
+  background: var(--papel);
+  border-radius: var(--radio);
+  box-shadow: var(--sombra-lg);
+  padding: 1.6rem;
+  width: 100%;
+  max-width: 420px;
+  max-height: 90vh;
+  overflow-y: auto;
+  animation: modal-entrada 0.18s ease;
+}
+@keyframes modal-entrada {
+  from { opacity: 0; transform: translateY(8px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+.modal-caja h3 { margin: 0 0 0.6rem; font-size: 1.15rem; color: var(--tinta); }
+.modal-caja > p { margin: 0 0 1.2rem; color: var(--tinta-suave); font-size: 0.94rem; line-height: 1.4; }
+.modal-input-label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--tinta-suave);
+  margin-bottom: 0.9rem;
+}
+.modal-input-label input {
+  font-weight: 400;
+  color: var(--tinta);
+  padding: 0.65rem 0.8rem;
+  border-radius: var(--radio-chico);
+  border: 1px solid var(--borde-fuerte);
+  background: var(--crema);
+}
+.modal-input-label input:focus {
+  border-color: var(--petroleo);
+  outline: none;
+  box-shadow: 0 0 0 3px var(--petroleo-tenue);
+}
+.modal-input-error { margin: -0.4rem 0 0.9rem; font-size: 0.85rem; }
+.modal-acciones {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.7rem;
+  margin-top: 0.4rem;
+}
+
+/* Foco accesible consistente para todo elemento interactivo con teclado */
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--petroleo);
+  outline-offset: 2px;
+}
+
+/* ---------- EmptyState ---------- */
+.empty-state {
+  text-align: center;
+  margin: 2.5rem auto;
+  max-width: 420px;
+  color: var(--tinta-tenue);
+  padding: 1rem;
+}
+.empty-state-icono { font-size: 2.2rem; margin-bottom: 0.6rem; line-height: 1; }
+.empty-state h3 { margin: 0 0 0.5rem; color: var(--tinta-suave); font-size: 1.05rem; }
+.empty-state p { margin: 0 0 1.1rem; font-size: 0.92rem; line-height: 1.45; }
+.empty-state-accion { display: flex; justify-content: center; }
+
+/* ---------- ErrorState ---------- */
+.error-state {
+  text-align: center;
+  margin: 2.5rem auto;
+  max-width: 420px;
+  padding: 1.2rem;
+  background: var(--alerta-tenue);
+  border: 1px solid var(--alerta);
+  border-radius: var(--radio);
+}
+.error-state h3 { margin: 0 0 0.4rem; color: var(--alerta); font-size: 1.02rem; }
+.error-state p { margin: 0 0 1rem; color: var(--tinta-suave); font-size: 0.9rem; line-height: 1.4; }
+
+/* ---------- Loading (spinner) ---------- */
+.spinner {
+  display: inline-block;
+  width: 1.1rem;
+  height: 1.1rem;
+  border: 2px solid var(--petroleo-tenue);
+  border-top-color: var(--petroleo);
+  border-radius: 50%;
+  animation: girar 0.7s linear infinite;
+}
+.spinner-chico { width: 0.9rem; height: 0.9rem; border-width: 2px; }
+@keyframes girar { to { transform: rotate(360deg); } }
+.loading-pagina, .loading-seccion {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  color: var(--tinta-tenue);
+  font-size: 0.94rem;
+}
+.loading-pagina { padding: 3rem 1rem; }
+.loading-seccion { padding: 1.4rem 1rem; }
+
+/* ---------- Variantes de toast ---------- */
+.toast-error { background: var(--alerta-oscuro); }
+.toast-info { background: var(--petroleo-oscuro); }
+
 /* ---------- Login ---------- */
 .pantalla-carga {
   min-height: 100vh;
@@ -1378,6 +1509,11 @@ button:disabled { opacity: 0.6; cursor: not-allowed; }
 
   .form-libro, .form-lectura { font-size: 1rem; }
   .form-libro input, .form-libro textarea, .form-lectura input, .form-lectura textarea { font-size: 16px; } /* evita el zoom automático de iOS al enfocar */
+
+  .modal-caja { padding: 1.3rem; }
+  .modal-input-label input { font-size: 16px; } /* evita el zoom automático de iOS al enfocar */
+  .modal-acciones { flex-direction: column-reverse; }
+  .modal-acciones button { width: 100%; }
 }
 
 @media (max-width: 480px) {

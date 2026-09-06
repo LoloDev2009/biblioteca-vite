@@ -1,23 +1,36 @@
 import { useEffect, useState } from 'react'
 import { obtenerEstadisticas } from '../lib/libros'
 import { obtenerEstadisticasPorPerfil } from '../lib/lecturas'
+import ErrorState from '../components/ErrorState.jsx'
+import { LoadingPagina } from '../components/Loading.jsx'
 
 export default function Estadisticas() {
   const [stats, setStats] = useState(null)
   const [statsPorPerfil, setStatsPorPerfil] = useState([])
   const [cargando, setCargando] = useState(true)
+  const [error, setError] = useState(null)
 
   useEffect(() => {
+    cargar()
+  }, [])
+
+  function cargar() {
+    setCargando(true)
+    setError(null)
     Promise.all([obtenerEstadisticas(), obtenerEstadisticasPorPerfil()])
       .then(([generales, porPerfil]) => {
         setStats(generales)
         setStatsPorPerfil(porPerfil)
       })
+      .catch((err) => {
+        console.error('cargar (Estadisticas):', err)
+        setError('No pudimos cargar las estadísticas.')
+      })
       .finally(() => setCargando(false))
-  }, [])
+  }
 
-  if (cargando) return <p>Cargando...</p>
-  if (!stats) return <p className="error">No se pudieron cargar las estadísticas.</p>
+  if (cargando) return <LoadingPagina texto="Cargando estadísticas..." />
+  if (error || !stats) return <ErrorState descripcion={error || 'No pudimos cargar las estadísticas.'} onRetry={cargar} />
 
   const porcentajeLeidos = stats.total > 0 ? Math.round((stats.leidos / stats.total) * 100) : 0
   const maxGenero = Math.max(1, ...stats.topGeneros.map(([, n]) => n))

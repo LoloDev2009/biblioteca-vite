@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { obtenerLibro, actualizarLibro, listarValoresFiltro } from '../lib/libros'
 import { toast } from '../lib/toast'
+import ErrorState from '../components/ErrorState.jsx'
+import { LoadingPagina } from '../components/Loading.jsx'
 
 export default function EditarLibro() {
   const { id } = useParams()
@@ -9,10 +11,11 @@ export default function EditarLibro() {
   const [form, setForm] = useState(null)
   const [guardando, setGuardando] = useState(false)
   const [mensaje, setMensaje] = useState(null)
+  const [errorCarga, setErrorCarga] = useState(null)
   const [sugerencias, setSugerencias] = useState({ generos: [], autores: [], sagas: [], idiomas: [] })
 
   useEffect(() => {
-    obtenerLibro(id).then(setForm).catch(() => setMensaje('No se pudo cargar el libro.'))
+    cargarLibro()
     listarValoresFiltro().then((data) => {
       setSugerencias({
         generos: [...new Set(data.map((l) => l.genero).filter(Boolean))].sort(),
@@ -21,7 +24,18 @@ export default function EditarLibro() {
         idiomas: [...new Set(data.map((l) => l.idioma).filter(Boolean))].sort(),
       })
     })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id])
+
+  async function cargarLibro() {
+    setErrorCarga(null)
+    try {
+      setForm(await obtenerLibro(id))
+    } catch (err) {
+      console.error('cargarLibro (EditarLibro):', err)
+      setErrorCarga('No pudimos cargar este libro.')
+    }
+  }
 
   function handleChange(campo, valor) {
     setForm((f) => ({ ...f, [campo]: valor }))
@@ -29,6 +43,7 @@ export default function EditarLibro() {
 
   async function handleGuardar(e) {
     e.preventDefault()
+    if (guardando) return
     if (!form.titulo.trim()) {
       setMensaje('El título es obligatorio.')
       return
@@ -57,15 +72,18 @@ export default function EditarLibro() {
         notas: form.notas || null,
       })
       navigate(`/libro/${id}`)
-      toast('Libro actualizado.')
-    } catch (e) {
-      setMensaje('No se pudo guardar el cambio.')
+      toast.success('Libro actualizado.')
+    } catch (err) {
+      console.error('handleGuardar (EditarLibro):', err)
+      setMensaje('No pudimos guardar el cambio.')
+      toast.error('No pudimos guardar el cambio.')
     } finally {
       setGuardando(false)
     }
   }
 
-  if (!form) return <p>Cargando...</p>
+  if (errorCarga) return <ErrorState descripcion={errorCarga} onRetry={cargarLibro} />
+  if (!form) return <LoadingPagina texto="Cargando libro..." />
 
   return (
     <div className="pagina-formulario">

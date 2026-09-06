@@ -1,27 +1,46 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { listarPorSaga } from '../lib/libros'
+import EmptyState from '../components/EmptyState.jsx'
+import ErrorState from '../components/ErrorState.jsx'
+import { LoadingPagina } from '../components/Loading.jsx'
 
 export default function Sagas() {
   const [grupos, setGrupos] = useState({})
   const [cargando, setCargando] = useState(true)
+  const [error, setError] = useState(null)
 
   useEffect(() => {
-    listarPorSaga().then(setGrupos).finally(() => setCargando(false))
+    cargar()
   }, [])
+
+  function cargar() {
+    setCargando(true)
+    setError(null)
+    listarPorSaga()
+      .then(setGrupos)
+      .catch((err) => {
+        console.error('cargar (Sagas):', err)
+        setError('No pudimos cargar las sagas.')
+      })
+      .finally(() => setCargando(false))
+  }
 
   const nombresSagas = Object.keys(grupos).sort((a, b) => a.localeCompare(b))
 
-  if (cargando) return <p>Cargando...</p>
+  if (cargando) return <LoadingPagina texto="Cargando sagas..." />
+
+  if (error) return <ErrorState descripcion={error} onRetry={cargar} />
 
   if (nombresSagas.length === 0) {
     return (
       <div className="sagas">
         <h2>Sagas</h2>
-        <p className="vacio">
-          Todavía no tenés libros con una saga cargada. Agregala desde "Más detalles"
-          al editar un libro y va a aparecer acá agrupado con el resto de la colección.
-        </p>
+        <EmptyState
+          icono="📖"
+          titulo="Todavía no tenés sagas cargadas"
+          descripcion='Agregala desde "Más detalles" al editar un libro y va a aparecer acá agrupada con el resto de la colección.'
+        />
       </div>
     )
   }

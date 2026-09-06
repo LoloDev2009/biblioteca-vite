@@ -66,8 +66,9 @@ export default function AgregarLibro() {
         setIsbn(codigo)
         setMensaje('No se encontró en Open Library. Completá los datos a mano.')
       }
-    } catch (e) {
-      setMensaje('Error consultando la API. Completá los datos a mano.')
+    } catch (err) {
+      console.error('handleBuscarIsbn:', err)
+      setMensaje('No pudimos consultar Open Library. Completá los datos a mano.')
     } finally {
       setBuscando(false)
     }
@@ -84,18 +85,25 @@ export default function AgregarLibro() {
 
   async function handleSubmit(e) {
     e.preventDefault()
+    if (guardando || verificandoDup) return
     if (!form.titulo.trim()) {
       setMensaje('El título es obligatorio.')
       return
     }
 
     setVerificandoDup(true)
-    const posibles = await buscarPosiblesDuplicados({ isbn: form.isbn, titulo: form.titulo, autor: form.autor })
-    setVerificandoDup(false)
-
-    if (posibles.length > 0) {
-      setDuplicados(posibles)
-      return // corta acá y espera que el usuario confirme si quiere seguir igual
+    try {
+      const posibles = await buscarPosiblesDuplicados({ isbn: form.isbn, titulo: form.titulo, autor: form.autor })
+      if (posibles.length > 0) {
+        setDuplicados(posibles)
+        return // corta acá y espera que el usuario confirme si quiere seguir igual
+      }
+    } catch (err) {
+      console.error('buscarPosiblesDuplicados:', err)
+      toast.error('No pudimos verificar duplicados. Intentá de nuevo.')
+      return
+    } finally {
+      setVerificandoDup(false)
     }
 
     await guardarLibro()
@@ -113,9 +121,11 @@ export default function AgregarLibro() {
         numero_saga: form.numero_saga === '' ? null : Number(form.numero_saga),
       })
       navigate('/')
-      toast('Libro agregado.')
-    } catch (e) {
-      setMensaje('No se pudo guardar el libro.')
+      toast.success('Libro agregado.')
+    } catch (err) {
+      console.error('guardarLibro:', err)
+      setMensaje('No pudimos guardar el libro.')
+      toast.error('No pudimos guardar el libro.')
     } finally {
       setGuardando(false)
     }

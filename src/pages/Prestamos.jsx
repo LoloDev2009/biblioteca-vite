@@ -1,10 +1,16 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { listarPrestamosActivos, marcarDevuelto } from '../lib/prestamos'
+import { toast } from '../lib/toast'
+import EmptyState from '../components/EmptyState.jsx'
+import ErrorState from '../components/ErrorState.jsx'
+import { LoadingPagina } from '../components/Loading.jsx'
 
 export default function Prestamos() {
   const [prestamos, setPrestamos] = useState([])
   const [cargando, setCargando] = useState(true)
+  const [error, setError] = useState(null)
+  const [devolviendoId, setDevolviendoId] = useState(null)
 
   useEffect(() => {
     cargar()
@@ -12,25 +18,42 @@ export default function Prestamos() {
 
   async function cargar() {
     setCargando(true)
+    setError(null)
     try {
       const data = await listarPrestamosActivos()
       setPrestamos(data)
+    } catch (err) {
+      console.error('cargar (Prestamos):', err)
+      setError('No pudimos cargar los préstamos.')
     } finally {
       setCargando(false)
     }
   }
 
   async function handleDevolver(prestamoId) {
-    await marcarDevuelto(prestamoId)
-    cargar()
+    if (devolviendoId) return
+    setDevolviendoId(prestamoId)
+    try {
+      await marcarDevuelto(prestamoId)
+      await cargar()
+      toast.success('Devolución registrada.')
+    } catch (err) {
+      console.error('handleDevolver (Prestamos):', err)
+      toast.error('No pudimos registrar la devolución.')
+    } finally {
+      setDevolviendoId(null)
+    }
   }
 
-  if (cargando) return <p>Cargando...</p>
+  if (cargando) return <LoadingPagina texto="Cargando préstamos..." />
+  if (error) return <ErrorState descripcion={error} onRetry={cargar} />
 
   return (
     <div className="prestamos">
       <h2>Préstamos activos</h2>
-      {prestamos.length === 0 && <p className="vacio">No tenés libros prestados.</p>}
+      {prestamos.length === 0 && (
+        <EmptyState icono="📗" titulo="No tenés libros prestados" />
+      )}
 
       <ul className="lista-prestamos">
         {prestamos.map((p) => (
@@ -45,7 +68,9 @@ export default function Prestamos() {
             <div className="prestamo-info">
               <span>Prestado a <strong>{p.nombre_persona}</strong></span>
               <span>desde {p.fecha_prestamo}</span>
-              <button onClick={() => handleDevolver(p.id)}>Marcar devuelto</button>
+              <button onClick={() => handleDevolver(p.id)} disabled={devolviendoId === p.id}>
+                {devolviendoId === p.id ? 'Marcando...' : 'Marcar devuelto'}
+              </button>
             </div>
           </li>
         ))}

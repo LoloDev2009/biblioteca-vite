@@ -5,6 +5,9 @@ import { prestarLibro, marcarDevuelto } from '../lib/prestamos'
 import TagsLibro from '../components/TagsLibro.jsx'
 import LecturasLibro from '../components/LecturasLibro.jsx'
 import { toast } from '../lib/toast'
+import ModalConfirmacion from '../components/ModalConfirmacion.jsx'
+import ErrorState from '../components/ErrorState.jsx'
+import { LoadingPagina } from '../components/Loading.jsx'
 
 export default function DetalleLibro() {
   const { id } = useParams()
@@ -12,17 +15,24 @@ export default function DetalleLibro() {
   const [libro, setLibro] = useState(null)
   const [nombrePersona, setNombrePersona] = useState('')
   const [error, setError] = useState(null)
+  const [prestando, setPrestando] = useState(false)
+  const [devolviendo, setDevolviendo] = useState(false)
+  const [mostrarModalEliminar, setMostrarModalEliminar] = useState(false)
+  const [eliminando, setEliminando] = useState(false)
 
   useEffect(() => {
     cargar()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id])
 
   async function cargar() {
+    setError(null)
     try {
       const data = await obtenerLibro(id)
       setLibro(data)
-    } catch (e) {
-      setError('No se pudo cargar el libro.')
+    } catch (err) {
+      console.error('cargar (DetalleLibro):', err)
+      setError('No pudimos cargar este libro.')
     }
   }
 
@@ -30,39 +40,72 @@ export default function DetalleLibro() {
 
   async function handlePrestar(e) {
     e.preventDefault()
-    if (!nombrePersona.trim()) return
-    await prestarLibro(id, nombrePersona.trim())
-    setNombrePersona('')
-    cargar()
-    toast('Libro prestado.')
+    if (!nombrePersona.trim() || prestando) return
+    setPrestando(true)
+    try {
+      await prestarLibro(id, nombrePersona.trim())
+      setNombrePersona('')
+      await cargar()
+      toast.success('Libro prestado.')
+    } catch (err) {
+      console.error('handlePrestar:', err)
+      toast.error('No pudimos registrar el préstamo.')
+    } finally {
+      setPrestando(false)
+    }
   }
 
   async function handleDevolver() {
-    await marcarDevuelto(prestamoActivo.id)
-    cargar()
-    toast('Devolución registrada.')
+    if (devolviendo) return
+    setDevolviendo(true)
+    try {
+      await marcarDevuelto(prestamoActivo.id)
+      await cargar()
+      toast.success('Devolución registrada.')
+    } catch (err) {
+      console.error('handleDevolver:', err)
+      toast.error('No pudimos registrar la devolución.')
+    } finally {
+      setDevolviendo(false)
+    }
   }
 
   async function handleToggleFavorito() {
-    await actualizarLibro(id, { favorito: !libro.favorito })
-    cargar()
+    try {
+      await actualizarLibro(id, { favorito: !libro.favorito })
+      await cargar()
+    } catch (err) {
+      console.error('handleToggleFavorito:', err)
+      toast.error('No pudimos actualizar el favorito.')
+    }
   }
 
-  async function handleEliminar() {
+  function handleEliminar() {
     if (prestamoActivo) {
-      window.alert(
+      toast.error(
         `No podés eliminar este libro: está prestado a ${prestamoActivo.nombre_persona}. Registrá la devolución primero.`
       )
       return
     }
-    if (!window.confirm(`¿Eliminar "${libro.titulo}" de tu biblioteca? Esta acción no se puede deshacer.`)) return
-    await eliminarLibro(id)
-    navigate('/')
-    toast('Libro eliminado.')
+    setMostrarModalEliminar(true)
   }
 
-  if (error) return <p className="error">{error}</p>
-  if (!libro) return <p>Cargando...</p>
+  async function confirmarEliminacion() {
+    setEliminando(true)
+    try {
+      await eliminarLibro(id)
+      navigate('/')
+      toast.success('Libro eliminado.')
+    } catch (err) {
+      console.error('confirmarEliminacion:', err)
+      toast.error('No pudimos eliminar el libro.')
+      setEliminando(false)
+      setMostrarModalEliminar(false)
+    }
+  }
+
+  if (error) return <ErrorState descripcion={error} onRetry={cargar} />
+  if (!libro) return <LoadingPagina texto="Cargando libro..." />
 
   return (
     <div className="detalle-libro">
@@ -102,7 +145,9 @@ export default function DetalleLibro() {
               Prestado a <strong>{prestamoActivo.nombre_persona}</strong> desde{' '}
               {prestamoActivo.fecha_prestamo}
             </p>
-            <button onClick={handleDevolver}>Marcar como devuelto</button>
+            <button onClick={handleDevolver} disabled={devolviendo}>
+              {devolviendo ? 'Marcando...' : 'Marcar como devuelto'}
+            </button>
           </div>
         ) : (
           <form onSubmit={handlePrestar} className="form-prestar">
@@ -111,8 +156,9 @@ export default function DetalleLibro() {
               placeholder="Nombre de quien se lo lleva"
               value={nombrePersona}
               onChange={(e) => setNombrePersona(e.target.value)}
+              disabled={prestando}
             />
-            <button type="submit">Prestar</button>
+            <button type="submit" disabled={prestando}>{prestando ? 'Prestando...' : 'Prestar'}</button>
           </form>
         )}
       </section>
@@ -125,6 +171,17 @@ export default function DetalleLibro() {
       <SeccionDetalles libro={libro} />
 
       <TagsLibro libroId={id} />
+
+      <ModalConfirmacion
+        abierto={mostrarModalEliminar}
+        titulo="Eliminar libro"
+        descripcion={`¿Seguro que querés eliminar "${libro.titulo}" de tu biblioteca? Esta acción no se puede deshacer.`}
+        textoConfirmar="Eliminar"
+        variante="danger"
+        loading={eliminando}
+        onCancelar={() => setMostrarModalEliminar(false)}
+        onConfirmar={confirmarEliminacion}
+      />
     </div>
   )
 }

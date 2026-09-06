@@ -2,11 +2,18 @@ import { useEffect, useState } from 'react'
 import { useAuth } from '../context/AuthContext.jsx'
 import { listarUsuariosAdmin, activarUsuario } from '../lib/admin'
 import { toast } from '../lib/toast'
+import ModalConfirmacion from '../components/ModalConfirmacion.jsx'
+import EmptyState from '../components/EmptyState.jsx'
+import ErrorState from '../components/ErrorState.jsx'
+import { LoadingPagina } from '../components/Loading.jsx'
 
 export default function Admin() {
   const { esAdmin } = useAuth()
   const [usuarios, setUsuarios] = useState([])
   const [cargando, setCargando] = useState(true)
+  const [error, setError] = useState(null)
+  const [usuarioAConfirmar, setUsuarioAConfirmar] = useState(null)
+  const [actualizando, setActualizando] = useState(false)
 
   useEffect(() => {
     if (esAdmin) cargar()
@@ -14,25 +21,41 @@ export default function Admin() {
 
   async function cargar() {
     setCargando(true)
+    setError(null)
     try {
       setUsuarios(await listarUsuariosAdmin())
+    } catch (err) {
+      console.error('cargar (Admin):', err)
+      setError('No pudimos cargar la lista de usuarios.')
     } finally {
       setCargando(false)
     }
   }
 
-  async function handleToggleActiva(usuario) {
-    const accion = usuario.activa ? 'desactivar' : 'activar'
-    if (!window.confirm(`¿Seguro que querés ${accion} el acceso de "${usuario.email}"?`)) return
-    await activarUsuario(usuario.user_id, !usuario.activa)
-    setUsuarios((prev) =>
-      prev.map((u) => (u.user_id === usuario.user_id ? { ...u, activa: !u.activa } : u))
-    )
-    toast(usuario.activa ? 'Usuario desactivado.' : 'Usuario activado.')
+  function handleToggleActiva(usuario) {
+    setUsuarioAConfirmar(usuario)
+  }
+
+  async function confirmarToggleActiva() {
+    const usuario = usuarioAConfirmar
+    setActualizando(true)
+    try {
+      await activarUsuario(usuario.user_id, !usuario.activa)
+      setUsuarios((prev) =>
+        prev.map((u) => (u.user_id === usuario.user_id ? { ...u, activa: !u.activa } : u))
+      )
+      setUsuarioAConfirmar(null)
+      toast.success(usuario.activa ? 'Usuario desactivado.' : 'Usuario activado.')
+    } catch (err) {
+      console.error('confirmarToggleActiva:', err)
+      toast.error('No pudimos actualizar el acceso de este usuario.')
+    } finally {
+      setActualizando(false)
+    }
   }
 
   if (!esAdmin) {
-    return <p className="error">No tenés permisos para ver esta pantalla.</p>
+    return <ErrorState titulo="Sin permisos" descripcion="No tenés permisos para ver esta pantalla." />
   }
 
   return (
@@ -43,45 +66,67 @@ export default function Admin() {
         biblioteca sin borrar ningún dato.
       </p>
 
-      {cargando && <p>Cargando...</p>}
-      {!cargando && usuarios.length === 0 && <p className="vacio">Todavía no hay usuarios registrados.</p>}
+      {error && !cargando && <ErrorState descripcion={error} onRetry={cargar} />}
 
-      <div className="tabla-admin-wrap">
-        <table className="tabla-admin">
-          <thead>
-            <tr>
-              <th>Usuario</th>
-              <th>Libros</th>
-              <th>Registrado</th>
-              <th>Estado</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody>
-            {usuarios.map((u) => (
-              <tr key={u.user_id} className={!u.activa ? 'fila-inactiva' : ''}>
-                <td>{u.email}</td>
-                <td>{u.cantidad_libros}</td>
-                <td>{new Date(u.creado_en).toLocaleDateString('es-AR')}</td>
-                <td>
-                  <span className={`estado-pill ${u.activa ? 'leido' : ''}`}>
-                    {u.activa ? 'Activo' : 'Inactivo'}
-                  </span>
-                </td>
-                <td>
-                  <button
-                    type="button"
-                    className={u.activa ? 'btn-eliminar' : ''}
-                    onClick={() => handleToggleActiva(u)}
-                  >
-                    {u.activa ? 'Desactivar' : 'Activar'}
-                  </button>
-                </td>
+      {cargando && <LoadingPagina texto="Cargando usuarios..." />}
+
+      {!cargando && !error && usuarios.length === 0 && (
+        <EmptyState titulo="Todavía no hay usuarios registrados" />
+      )}
+
+      {!cargando && !error && usuarios.length > 0 && (
+        <div className="tabla-admin-wrap">
+          <table className="tabla-admin">
+            <thead>
+              <tr>
+                <th>Usuario</th>
+                <th>Libros</th>
+                <th>Registrado</th>
+                <th>Estado</th>
+                <th></th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody>
+              {usuarios.map((u) => (
+                <tr key={u.user_id} className={!u.activa ? 'fila-inactiva' : ''}>
+                  <td>{u.email}</td>
+                  <td>{u.cantidad_libros}</td>
+                  <td>{new Date(u.creado_en).toLocaleDateString('es-AR')}</td>
+                  <td>
+                    <span className={`estado-pill ${u.activa ? 'leido' : ''}`}>
+                      {u.activa ? 'Activo' : 'Inactivo'}
+                    </span>
+                  </td>
+                  <td>
+                    <button
+                      type="button"
+                      className={u.activa ? 'btn-eliminar' : ''}
+                      onClick={() => handleToggleActiva(u)}
+                    >
+                      {u.activa ? 'Desactivar' : 'Activar'}
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      <ModalConfirmacion
+        abierto={!!usuarioAConfirmar}
+        titulo={usuarioAConfirmar?.activa ? 'Desactivar usuario' : 'Activar usuario'}
+        descripcion={
+          usuarioAConfirmar
+            ? `¿Seguro que querés ${usuarioAConfirmar.activa ? 'desactivar' : 'activar'} el acceso de "${usuarioAConfirmar.email}"?`
+            : ''
+        }
+        textoConfirmar={usuarioAConfirmar?.activa ? 'Desactivar' : 'Activar'}
+        variante={usuarioAConfirmar?.activa ? 'danger' : 'normal'}
+        loading={actualizando}
+        onCancelar={() => setUsuarioAConfirmar(null)}
+        onConfirmar={confirmarToggleActiva}
+      />
     </div>
   )
 }

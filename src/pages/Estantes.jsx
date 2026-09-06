@@ -1,6 +1,9 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { listarPorEstante } from '../lib/libros'
+import EmptyState from '../components/EmptyState.jsx'
+import ErrorState from '../components/ErrorState.jsx'
+import { LoadingPagina } from '../components/Loading.jsx'
 
 // Paleta de colores de lomo, asignada de forma estable según el género
 // (mismo género -> mismo color siempre), para que la estantería se
@@ -17,10 +20,23 @@ function colorPara(genero) {
 export default function Estantes() {
   const [grupos, setGrupos] = useState({})
   const [cargando, setCargando] = useState(true)
+  const [error, setError] = useState(null)
 
   useEffect(() => {
-    listarPorEstante().then(setGrupos).finally(() => setCargando(false))
+    cargar()
   }, [])
+
+  function cargar() {
+    setCargando(true)
+    setError(null)
+    listarPorEstante()
+      .then(setGrupos)
+      .catch((err) => {
+        console.error('cargar (Estantes):', err)
+        setError('No pudimos cargar la estantería.')
+      })
+      .finally(() => setCargando(false))
+  }
 
   const nombresEstantes = Object.keys(grupos).sort((a, b) => {
     if (a === 'Sin estante') return 1
@@ -28,9 +44,16 @@ export default function Estantes() {
     return a.localeCompare(b)
   })
 
-  if (cargando) return <p>Cargando...</p>
+  if (cargando) return <LoadingPagina texto="Cargando estantería..." />
+  if (error) return <ErrorState descripcion={error} onRetry={cargar} />
   if (nombresEstantes.length === 0) {
-    return <p className="vacio">Todavía no hay libros cargados.</p>
+    return (
+      <EmptyState
+        icono="🗄️"
+        titulo="Todavía no hay libros organizados en estantes"
+        descripcion="Agregá libros y asignales un estante para verlos ordenados acá."
+      />
+    )
   }
 
   return (

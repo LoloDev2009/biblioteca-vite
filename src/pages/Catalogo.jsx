@@ -5,6 +5,10 @@ import { listarPrestamosActivosPorLibro, prestarLibro } from '../lib/prestamos'
 import { listarPerfiles } from '../lib/perfiles'
 import { listarLecturasPorLibro } from '../lib/lecturas'
 import { toast } from '../lib/toast'
+import ModalConfirmacion from '../components/ModalConfirmacion.jsx'
+import ModalInput from '../components/ModalInput.jsx'
+import EmptyState from '../components/EmptyState.jsx'
+import ErrorState from '../components/ErrorState.jsx'
 
 const OPCIONES_ORDEN = [
   { valor: 'titulo-asc', etiqueta: 'Título (A-Z)', ordenPor: 'titulo', ordenAsc: true },
@@ -51,6 +55,11 @@ export default function Catalogo() {
   const [menuAbiertoId, setMenuAbiertoId] = useState(null)
   const [cargando, setCargando] = useState(true)
   const [error, setError] = useState(null)
+  const [libroAEliminar, setLibroAEliminar] = useState(null)
+  const [eliminando, setEliminando] = useState(false)
+  const [libroAPrestar, setLibroAPrestar] = useState(null)
+  const [nombrePrestamo, setNombrePrestamo] = useState('')
+  const [prestando, setPrestando] = useState(false)
 
   useEffect(() => {
     listarValoresFiltro().then((data) => {
@@ -119,8 +128,9 @@ export default function Catalogo() {
       setLibros(resultado)
       setPrestamosPorLibro(mapaPrestamos)
       setError(null)
-    } catch (e) {
-      setError('No se pudo cargar el catálogo. Revisá la conexión con Supabase.')
+    } catch (err) {
+      console.error('cargar (Catalogo):', err)
+      setError('No pudimos cargar el catálogo. Revisá la conexión con Supabase.')
     } finally {
       setCargando(false)
     }
@@ -174,8 +184,10 @@ export default function Catalogo() {
     setLibros((prev) => prev.map((l) => (l.id === libro.id ? { ...l, favorito: !l.favorito } : l)))
     try {
       await actualizarLibro(libro.id, { favorito: !libro.favorito })
-    } catch (e) {
+    } catch (err) {
+      console.error('handleToggleFavorito:', err)
       setLibros((prev) => prev.map((l) => (l.id === libro.id ? { ...l, favorito: libro.favorito } : l)))
+      toast.error('No pudimos actualizar el favorito.')
     }
   }
 
@@ -189,20 +201,38 @@ export default function Catalogo() {
     e.preventDefault()
     e.stopPropagation()
     setMenuAbiertoId(null)
-    await actualizarLibro(libro.id, { leido: !libro.leido })
-    setLibros((prev) => prev.map((l) => (l.id === libro.id ? { ...l, leido: !l.leido } : l)))
-    toast(libro.leido ? 'Marcado como no leído.' : 'Marcado como leído.')
+    try {
+      await actualizarLibro(libro.id, { leido: !libro.leido })
+      setLibros((prev) => prev.map((l) => (l.id === libro.id ? { ...l, leido: !l.leido } : l)))
+      toast.success(libro.leido ? 'Marcado como no leído.' : 'Marcado como leído.')
+    } catch (err) {
+      console.error('handleMarcarLeido:', err)
+      toast.error('No pudimos actualizar el estado de lectura.')
+    }
   }
 
-  async function handlePrestarRapido(e, libro) {
+  function handlePrestarRapido(e, libro) {
     e.preventDefault()
     e.stopPropagation()
     setMenuAbiertoId(null)
-    const nombre = window.prompt(`¿A quién le prestás "${libro.titulo}"?`)
-    if (!nombre?.trim()) return
-    await prestarLibro(libro.id, nombre.trim())
-    cargar()
-    toast('Libro prestado.')
+    setNombrePrestamo('')
+    setLibroAPrestar(libro)
+  }
+
+  async function confirmarPrestamoRapido() {
+    if (!nombrePrestamo.trim()) return
+    setPrestando(true)
+    try {
+      await prestarLibro(libroAPrestar.id, nombrePrestamo.trim())
+      setLibroAPrestar(null)
+      await cargar()
+      toast.success('Libro prestado.')
+    } catch (err) {
+      console.error('confirmarPrestamoRapido:', err)
+      toast.error('No pudimos registrar el préstamo.')
+    } finally {
+      setPrestando(false)
+    }
   }
 
   function handleEditarRapido(e, libro) {
@@ -212,21 +242,33 @@ export default function Catalogo() {
     navigate(`/libro/${libro.id}/editar`)
   }
 
-  async function handleEliminarRapido(e, libro) {
+  function handleEliminarRapido(e, libro) {
     e.preventDefault()
     e.stopPropagation()
     setMenuAbiertoId(null)
     const prestamo = prestamosPorLibro[libro.id]
     if (prestamo) {
-      window.alert(
+      toast.error(
         `No podés eliminar "${libro.titulo}": está prestado a ${prestamo.nombre_persona}. Registrá la devolución primero.`
       )
       return
     }
-    if (!window.confirm(`¿Eliminar "${libro.titulo}" de tu biblioteca? Esta acción no se puede deshacer.`)) return
-    await eliminarLibro(libro.id)
-    setLibros((prev) => prev.filter((l) => l.id !== libro.id))
-    toast('Libro eliminado.')
+    setLibroAEliminar(libro)
+  }
+
+  async function confirmarEliminacion() {
+    setEliminando(true)
+    try {
+      await eliminarLibro(libroAEliminar.id)
+      setLibros((prev) => prev.filter((l) => l.id !== libroAEliminar.id))
+      setLibroAEliminar(null)
+      toast.success('Libro eliminado.')
+    } catch (err) {
+      console.error('confirmarEliminacion:', err)
+      toast.error('No pudimos eliminar el libro.')
+    } finally {
+      setEliminando(false)
+    }
   }
 
   return (
@@ -348,23 +390,28 @@ export default function Catalogo() {
         </div>
       )}
 
-      {error && <p className="error">{error}</p>}
+      {error && !cargando && <ErrorState descripcion={error} onRetry={cargar} />}
 
       {cargando && <SkeletonCatalogo vista={vista} />}
 
-      {!cargando && libros.length === 0 && chips.length === 0 && (
-        <p className="vacio">
-          Todavía no tenés libros. <Link to="/agregar" className="link-inline">Agregá tu primer libro.</Link>
-        </p>
+      {!cargando && !error && libros.length === 0 && chips.length === 0 && (
+        <EmptyState
+          icono="📚"
+          titulo="No hay libros todavía"
+          descripcion="Agregá tu primer libro para comenzar a construir tu biblioteca."
+          accion={<Link to="/agregar"><button type="button">Agregar libro</button></Link>}
+        />
       )}
-      {!cargando && libros.length === 0 && chips.length > 0 && (
-        <p className="vacio">
-          {busqueda ? `No encontramos libros para "${busqueda}".` : 'No encontramos libros con estos filtros.'}{' '}
-          <button type="button" className="link-inline" onClick={limpiarTodo}>Limpiar búsqueda</button>
-        </p>
+      {!cargando && !error && libros.length === 0 && chips.length > 0 && (
+        <EmptyState
+          icono="🔍"
+          titulo="Sin resultados"
+          descripcion={busqueda ? `No encontramos libros para "${busqueda}".` : 'No encontramos libros con estos filtros.'}
+          accion={<button type="button" className="btn-secundario" onClick={limpiarTodo}>Limpiar búsqueda</button>}
+        />
       )}
 
-      {!cargando && (vista === 'cuadricula' ? (
+      {!cargando && !error && (vista === 'cuadricula' ? (
         <div className="grid-libros">
           {libros.map((libro) => (
             <Link to={`/libro/${libro.id}`} key={libro.id} className="card-libro">
@@ -439,6 +486,31 @@ export default function Catalogo() {
       ))}
 
       <Link to="/agregar" className="boton-flotante" aria-label="Agregar libro">+</Link>
+
+      <ModalConfirmacion
+        abierto={!!libroAEliminar}
+        titulo="Eliminar libro"
+        descripcion={libroAEliminar ? `¿Seguro que querés eliminar "${libroAEliminar.titulo}"? Esta acción no se puede deshacer.` : ''}
+        textoConfirmar="Eliminar"
+        variante="danger"
+        loading={eliminando}
+        onCancelar={() => setLibroAEliminar(null)}
+        onConfirmar={confirmarEliminacion}
+      />
+
+      <ModalInput
+        abierto={!!libroAPrestar}
+        titulo="Prestar libro"
+        descripcion={libroAPrestar ? `¿A quién le prestás "${libroAPrestar.titulo}"?` : ''}
+        label="Nombre"
+        valor={nombrePrestamo}
+        placeholder="Ej: Juan"
+        onChange={setNombrePrestamo}
+        onCancelar={() => setLibroAPrestar(null)}
+        onConfirmar={confirmarPrestamoRapido}
+        textoConfirmar="Prestar"
+        loading={prestando}
+      />
     </div>
   )
 }

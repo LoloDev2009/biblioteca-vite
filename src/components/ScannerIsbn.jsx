@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Html5Qrcode, Html5QrcodeSupportedFormats } from 'html5-qrcode'
+import { LoadingSeccion } from './Loading.jsx'
 
 const ID_VIEWPORT = 'lector-isbn-viewport'
 
@@ -70,7 +71,7 @@ export default function ScannerIsbn({ onDetectado, onCerrar }) {
   return (
     <div className="scanner-isbn">
       <div id={ID_VIEWPORT} className="scanner-viewport" />
-      {iniciando && <p className="mensaje">Iniciando cámara...</p>}
+      {iniciando && <LoadingSeccion texto="Iniciando cámara..." />}
       {error && <p className="error">{error}</p>}
       {!error && !iniciando && (
         <p className="scanner-ayuda">Apuntá al código de barras de la contratapa del libro</p>
