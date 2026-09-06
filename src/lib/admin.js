@@ -6,15 +6,15 @@ export async function soyAdmin() {
   return !!data
 }
 
-export async function listarFamiliasAdmin() {
-  const { data, error } = await supabase.rpc('admin_listar_familias')
+export async function listarUsuariosAdmin() {
+  const { data, error } = await supabase.rpc('admin_listar_usuarios')
   if (error) throw error
   return data
 }
 
-export async function activarFamilia(familiaId, activa) {
-  const { error } = await supabase.rpc('admin_set_familia_activa', {
-    familia_id_param: familiaId,
+export async function activarUsuario(userId, activa) {
+  const { error } = await supabase.rpc('admin_set_usuario_activo', {
+    user_id_param: userId,
     nueva_activa: activa,
   })
   if (error) throw error

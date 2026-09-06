@@ -44,7 +44,7 @@ export default function LecturasLibro({ libroId }) {
       <div className="lecturas-libro">
         <h3>¿Quién lo leyó?</h3>
         <p className="vacio">
-          Todavía no cargaste a los integrantes de tu familia.{' '}
+          Todavía no cargaste perfiles de lectura.{' '}
           <Link to="/perfiles">Agregalos acá</Link> para poder marcar quién leyó cada libro.
         </p>
       </div>

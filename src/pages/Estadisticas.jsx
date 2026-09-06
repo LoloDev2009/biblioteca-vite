@@ -35,7 +35,7 @@ export default function Estadisticas() {
           valor={stats.promedioPuntuacion != null ? stats.promedioPuntuacion.toFixed(1) : '—'}
           etiqueta="Puntuación promedio"
         />
-        <MetricaCard valor={stats.paginasLeidas.toLocaleString('es-AR')} etiqueta="Páginas leídas (familia)" />
+        <MetricaCard valor={stats.paginasLeidas.toLocaleString('es-AR')} etiqueta="Páginas leídas (total)" />
         <MetricaCard valor={stats.enWishlist} etiqueta="En la wishlist" />
         <MetricaCard valor={stats.prestamosActivos} etiqueta="Préstamos activos" />
       </div>
@@ -67,7 +67,7 @@ export default function Estadisticas() {
       )}
       {statsPorPerfil.length === 0 && (
         <p className="vacio">
-          Cargá a los integrantes de tu familia en "Familia" para ver estadísticas de lectura por persona.
+          Cargá tus perfiles de lectura en "Perfiles" para ver estadísticas por persona.
         </p>
       )}
 

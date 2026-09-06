@@ -1,10 +1,5 @@
-import { useEffect, useState } from 'react'
-import {
-  enviarMagicLink,
-  registrarseConPassword,
-  iniciarSesionConPassword,
-  buscarFamiliaPorCodigo,
-} from '../lib/auth'
+import { useState } from 'react'
+import { enviarMagicLink, registrarseConPassword, iniciarSesionConPassword } from '../lib/auth'
 
 export default function Login() {
   const [modo, setModo] = useState('magic') // 'magic' | 'password'
@@ -14,15 +9,6 @@ export default function Login() {
   const [cargando, setCargando] = useState(false)
   const [mensaje, setMensaje] = useState(null)
   const [error, setError] = useState(null)
-  const [familiaInvitacion, setFamiliaInvitacion] = useState(null)
-
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search)
-    const codigo = params.get('invite')
-    if (codigo) {
-      buscarFamiliaPorCodigo(codigo).then(setFamiliaInvitacion)
-    }
-  }, [])
 
   async function handleMagicLink(e) {
     e.preventDefault()
@@ -66,12 +52,6 @@ export default function Login() {
     <div className="pantalla-login">
       <div className="card-login">
         <h1>Mi Biblioteca</h1>
-
-        {familiaInvitacion && (
-          <p className="aviso-invitacion">
-            Te estás uniendo a <strong>{familiaInvitacion.nombre}</strong>.
-          </p>
-        )}
 
         <div className="tabs-login">
           <button type="button" className={modo === 'magic' ? 'activo' : ''} onClick={() => setModo('magic')}>

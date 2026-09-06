@@ -22,7 +22,7 @@ const ENLACES_NAV = [
   { to: '/wishlist', label: 'Wishlist' },
   { to: '/prestamos', label: 'Préstamos' },
   { to: '/estadisticas', label: 'Estadísticas' },
-  { to: '/perfiles', label: 'Familia' },
+  { to: '/perfiles', label: 'Perfiles' },
   { to: '/agregar', label: 'Agregar libro' },
 ]
 
@@ -30,7 +30,7 @@ export default function App() {
   // Estado puramente de presentación: controla si el menú lateral
   // está abierto en pantallas chicas. No afecta rutas ni datos.
   const [menuAbierto, setMenuAbierto] = useState(false)
-  const { session, familia, cargando, cerrarSesion, esAdmin } = useAuth()
+  const { session, cargando, cerrarSesion, esAdmin } = useAuth()
 
   if (session === undefined || (session && cargando)) {
     return <div className="pantalla-carga">Cargando...</div>
@@ -65,7 +65,7 @@ export default function App() {
       <aside className={`sidebar ${menuAbierto ? 'abierto' : ''}`}>
         <div className="marca-sidebar">
           <span className="marca-titulo">Mi Biblioteca</span>
-          <span className="marca-subtitulo">{familia?.nombre || 'Catálogo personal'}</span>
+          <span className="marca-subtitulo">Catálogo personal</span>
         </div>
 
         <nav className="nav-sidebar" onClick={() => setMenuAbierto(false)}>

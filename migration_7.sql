@@ -12,7 +12,7 @@ create table if not exists familias (
   nombre text not null default 'Mi biblioteca',
   codigo_invitacion text not null unique,
   creado_por uuid references auth.users(id),
-  creado_en timestamptz default now()   
+  creado_en timestamptz default now()
 );
 
 create table if not exists miembros_familia (

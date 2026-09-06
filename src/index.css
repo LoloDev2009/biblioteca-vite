@@ -1259,15 +1259,6 @@ button:disabled { opacity: 0.6; cursor: not-allowed; }
   text-align: center;
   margin-bottom: 1.4rem;
 }
-.aviso-invitacion {
-  background: var(--petroleo-tenue);
-  color: var(--petroleo-oscuro);
-  font-size: 0.85rem;
-  padding: 0.6rem 0.8rem;
-  border-radius: var(--radio-chico);
-  margin-bottom: 1.2rem;
-  text-align: center;
-}
 .tabs-login { display: flex; border: 1px solid var(--borde-fuerte); border-radius: var(--radio-chico); overflow: hidden; margin-bottom: 1.2rem; }
 .tabs-login button {
   flex: 1;
@@ -1294,7 +1285,7 @@ button:disabled { opacity: 0.6; cursor: not-allowed; }
 }
 .form-login input:focus { border-color: var(--petroleo); outline: none; box-shadow: 0 0 0 3px var(--petroleo-tenue); }
 
-/* ---------- Cerrar sesión / invitaciones ---------- */
+/* ---------- Cerrar sesión ---------- */
 .boton-cerrar-sesion {
   background: transparent;
   color: var(--alerta);
@@ -1303,31 +1294,6 @@ button:disabled { opacity: 0.6; cursor: not-allowed; }
   margin-top: 0.5rem;
 }
 .boton-cerrar-sesion:hover { background: var(--alerta-tenue); }
-
-.seccion-invitacion {
-  background: var(--papel);
-  border: 1px solid var(--borde);
-  border-radius: var(--radio);
-  padding: 1.2rem;
-  margin-bottom: 1.6rem;
-  box-shadow: var(--sombra-sm);
-  max-width: 520px;
-}
-.seccion-invitacion h3 { font-size: 1rem; color: var(--petroleo-oscuro); margin-bottom: 0.4rem; }
-.titulo-seccion-perfiles { color: var(--madera-oscura); margin-top: 0.5rem; }
-.caja-invitacion { margin-top: 0.8rem; }
-.caja-invitacion code {
-  display: block;
-  background: var(--crema);
-  border: 1px solid var(--borde-fuerte);
-  border-radius: var(--radio-chico);
-  padding: 0.6rem 0.8rem;
-  font-size: 0.82rem;
-  word-break: break-all;
-  margin-bottom: 0.6rem;
-}
-.acciones-invitacion { display: flex; gap: 0.6rem; flex-wrap: wrap; }
-.acciones-invitacion button { font-size: 0.82rem; }
 
 /* ---------- Panel de administración ---------- */
 .admin h2 { color: var(--madera-oscura); }
