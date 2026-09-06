@@ -1,6 +1,7 @@
 import os
 from dotenv import load_dotenv
 from supabase import create_client, Client
+from supabase_admin import crear_cliente
 
 
 # ============================================================
@@ -12,27 +13,7 @@ TABLA_LIBROS = "libros"
 CAMPO_ID = "id"
 CAMPO_TITULO = "titulo"
 CAMPO_SAGA = "saga"
-CAMPO_ANIO = "anio_publicacion"
-
-
-# ============================================================
-# SUPABASE
-# ============================================================
-
-def crear_cliente() -> Client:
-    load_dotenv()
-
-    url = os.getenv("VITE_SUPABASE_URL")
-    key = os.getenv("VITE_SUPABASE_ANON_KEY")
-
-    if not url or not key:
-        raise RuntimeError(
-            "Faltan VITE_SUPABASE_URL o VITE_SUPABASE_ANON_KEY "
-            "en el archivo .env"
-        )
-
-    return create_client(url, key)
-
+CAMPO_ANIO = "paginas"#"anio_publicacion"
 
 # ============================================================
 # SAGAS

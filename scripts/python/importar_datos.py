@@ -1,6 +1,7 @@
 import os
 from dotenv import load_dotenv
 from supabase import create_client, Client
+from supabase_admin import crear_cliente
 
 
 # ============================================================
@@ -22,26 +23,6 @@ DETALLES_COPIABLES = {
     "ejemplares_totales": "Ejemplares totales",
     "estante": "Estante",
 }
-
-
-# ============================================================
-# SUPABASE
-# ============================================================
-
-def crear_cliente() -> Client:
-    load_dotenv()
-
-    url = os.getenv("VITE_SUPABASE_URL")
-    key = os.getenv("VITE_SUPABASE_ANON_KEY")
-
-    if not url or not key:
-        raise RuntimeError(
-            "Faltan VITE_SUPABASE_URL o VITE_SUPABASE_ANON_KEY "
-            "en el archivo .env"
-        )
-
-    return create_client(url, key)
-
 
 # ============================================================
 # SAGAS
