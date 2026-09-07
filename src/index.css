@@ -1001,6 +1001,8 @@ button:disabled { opacity: 0.6; cursor: not-allowed; }
   text-decoration: underline;
   display: inline;
 }
+.link-inline:hover { background: transparent; color: var(--petroleo); }
+.link-inline:disabled { background: transparent; }
 
 /* ---------- Badge de prestado en las cards ---------- */
 .badge-prestado {
@@ -1388,20 +1390,27 @@ textarea:focus-visible {
   font-size: 1.4rem;
   color: var(--madera-oscura);
   text-align: center;
-  margin-bottom: 1.4rem;
+  margin-bottom: 0.4rem;
 }
-.tabs-login { display: flex; border: 1px solid var(--borde-fuerte); border-radius: var(--radio-chico); overflow: hidden; margin-bottom: 1.2rem; }
-.tabs-login button {
-  flex: 1;
-  background: var(--papel);
+.subtitulo-login {
+  text-align: center;
   color: var(--tinta-suave);
-  border: none;
-  border-radius: 0;
-  padding: 0.6rem;
-  font-size: 0.85rem;
+  font-size: 0.92rem;
+  margin: 0 0 1.4rem;
 }
-.tabs-login button + button { border-left: 1px solid var(--borde-fuerte); }
-.tabs-login button.activo { background: var(--petroleo); color: white; }
+.subtitulo-chico { text-align: left; font-size: 0.85rem; margin-bottom: 1rem; }
+.opciones-elegir-login {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+.volver-login {
+  display: inline-block;
+  margin-bottom: 1rem;
+  font-size: 0.85rem;
+  text-decoration: none;
+}
+.volver-login:hover { text-decoration: underline; }
 .mensaje-login { font-size: 0.85rem; padding: 0.6rem 0.8rem; border-radius: var(--radio-chico); margin-bottom: 1rem; }
 .mensaje-login.exito { background: var(--oliva-tenue); color: var(--oliva-oscuro); }
 .mensaje-login.error { background: var(--alerta-tenue); color: var(--alerta); }
@@ -1415,6 +1424,13 @@ textarea:focus-visible {
   background: var(--crema);
 }
 .form-login input:focus { border-color: var(--petroleo); outline: none; box-shadow: 0 0 0 3px var(--petroleo-tenue); }
+.form-login input:disabled { opacity: 0.6; }
+.opcion-secundaria-login {
+  text-align: center;
+  font-size: 0.85rem;
+  color: var(--tinta-suave);
+  margin: 0;
+}
 
 /* ---------- Cerrar sesión ---------- */
 .boton-cerrar-sesion {
