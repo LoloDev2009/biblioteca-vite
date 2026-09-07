@@ -1,9 +1,10 @@
 import { useEffect, useRef } from 'react'
+import { useFocusTrap } from '../hooks/useFocusTrap'
 
 // Modal de confirmación genérico: reemplaza progresivamente los usos de
 // window.confirm() en toda la app. Bloquea la interacción mientras
-// `loading` es true, se cierra con Escape (salvo mientras carga) y
-// enfoca el botón de confirmar al abrirse para navegación por teclado.
+// `loading` es true, se cierra con Escape (salvo mientras carga), enfoca
+// el botón de confirmar al abrirse y atrapa el Tab adentro del modal.
 export default function ModalConfirmacion({
   abierto,
   titulo,
@@ -16,6 +17,7 @@ export default function ModalConfirmacion({
   onConfirmar,
 }) {
   const botonConfirmarRef = useRef(null)
+  const contenedorRef = useFocusTrap(abierto)
 
   useEffect(() => {
     if (!abierto) return
@@ -39,6 +41,7 @@ export default function ModalConfirmacion({
     <div className="modal-overlay" onClick={() => !loading && onCancelar?.()}>
       <div
         className="modal-caja"
+        ref={contenedorRef}
         role="alertdialog"
         aria-modal="true"
         aria-labelledby="modal-confirmacion-titulo"

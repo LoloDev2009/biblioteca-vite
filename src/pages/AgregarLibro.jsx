@@ -1,9 +1,13 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, lazy, Suspense } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { buscarPorIsbn } from '../lib/openLibrary'
 import { crearLibro, listarValoresFiltro, buscarPosiblesDuplicados } from '../lib/libros'
-import ScannerIsbn from '../components/ScannerIsbn.jsx'
 import { toast } from '../lib/toast'
+import { LoadingSeccion } from '../components/Loading.jsx'
+
+// html5-qrcode pesa varios MB; se carga solo cuando el usuario abre el
+// scanner (no en cada visita a "Agregar libro").
+const ScannerIsbn = lazy(() => import('../components/ScannerIsbn.jsx'))
 
 const LIBRO_VACIO = {
   titulo: '',
@@ -156,7 +160,9 @@ export default function AgregarLibro() {
       </div>
 
       {mostrarScanner && (
-        <ScannerIsbn onDetectado={handleIsbnEscaneado} onCerrar={() => setMostrarScanner(false)} />
+        <Suspense fallback={<LoadingSeccion texto="Cargando escáner..." />}>
+          <ScannerIsbn onDetectado={handleIsbnEscaneado} onCerrar={() => setMostrarScanner(false)} />
+        </Suspense>
       )}
 
       {mensaje && <p className="mensaje">{mensaje}</p>}

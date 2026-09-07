@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react'
+import { useFocusTrap } from '../hooks/useFocusTrap'
 
 // Modal para pedir un dato de texto: reemplaza progresivamente los usos
 // de window.prompt() en toda la app (renombrar perfil, estante al mover
@@ -20,6 +21,7 @@ export default function ModalInput({
   requerido = true,
 }) {
   const inputRef = useRef(null)
+  const contenedorRef = useFocusTrap(abierto)
 
   useEffect(() => {
     if (!abierto) return
@@ -49,6 +51,7 @@ export default function ModalInput({
     <div className="modal-overlay" onClick={() => !loading && onCancelar?.()}>
       <form
         className="modal-caja"
+        ref={contenedorRef}
         role="dialog"
         aria-modal="true"
         aria-labelledby="modal-input-titulo"

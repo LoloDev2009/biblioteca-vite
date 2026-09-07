@@ -48,7 +48,10 @@ export default function Catalogo() {
   const [estadoLectura, setEstadoLectura] = useState('todos') // todos | leidos | sinLeer
   const [estadoPrestamo, setEstadoPrestamo] = useState('todos') // todos | disponibles | prestados
   const [soloFavoritos, setSoloFavoritos] = useState(false)
-  const [orden, setOrden] = useState(() => localStorage.getItem(CLAVE_ORDEN) || 'titulo-asc')
+  const [orden, setOrden] = useState(() => {
+    const guardado = localStorage.getItem(CLAVE_ORDEN)
+    return OPCIONES_ORDEN.some((o) => o.valor === guardado) ? guardado : 'titulo-asc'
+  })
   const [vista, setVista] = useState(vistaInicial)
   const [mostrarMasFiltros, setMostrarMasFiltros] = useState(false)
   const [menuAbiertoId, setMenuAbiertoId] = useState(null)
@@ -89,13 +92,21 @@ export default function Catalogo() {
     localStorage.setItem(CLAVE_VISTA, vista)
   }, [vista])
 
-  // Cierra el menú de acciones rápidas al hacer clic en cualquier otro lado.
+  // Cierra el menú de acciones rápidas al hacer clic en cualquier otro lado
+  // o al presionar Escape.
   useEffect(() => {
     function cerrar() {
       setMenuAbiertoId(null)
     }
+    function cerrarConEscape(e) {
+      if (e.key === 'Escape') setMenuAbiertoId(null)
+    }
     document.addEventListener('click', cerrar)
-    return () => document.removeEventListener('click', cerrar)
+    document.addEventListener('keydown', cerrarConEscape)
+    return () => {
+      document.removeEventListener('click', cerrar)
+      document.removeEventListener('keydown', cerrarConEscape)
+    }
   }, [])
 
   async function cargar() {

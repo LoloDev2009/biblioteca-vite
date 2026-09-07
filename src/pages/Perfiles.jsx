@@ -16,6 +16,7 @@ export default function Perfiles() {
   const [perfilARenombrar, setPerfilARenombrar] = useState(null)
   const [nuevoNombre, setNuevoNombre] = useState('')
   const [renombrando, setRenombrando] = useState(false)
+  const [errorRenombrar, setErrorRenombrar] = useState(null)
   const [perfilAEliminar, setPerfilAEliminar] = useState(null)
   const [eliminando, setEliminando] = useState(false)
 
@@ -47,7 +48,7 @@ export default function Perfiles() {
       toast.success('Perfil agregado.')
     } catch (err) {
       console.error('handleAgregar (Perfiles):', err)
-      toast.error('No pudimos agregar el perfil.')
+      toast.error(err.code === '23505' ? 'Ya tenés un perfil con ese nombre.' : 'No pudimos agregar el perfil.')
     } finally {
       setCreando(false)
     }
@@ -55,6 +56,7 @@ export default function Perfiles() {
 
   function handleRenombrar(perfil) {
     setNuevoNombre(perfil.nombre)
+    setErrorRenombrar(null)
     setPerfilARenombrar(perfil)
   }
 
@@ -64,6 +66,7 @@ export default function Perfiles() {
       return
     }
     setRenombrando(true)
+    setErrorRenombrar(null)
     try {
       await renombrarPerfil(perfilARenombrar.id, nuevoNombre)
       setPerfilARenombrar(null)
@@ -71,7 +74,12 @@ export default function Perfiles() {
       toast.success('Perfil renombrado.')
     } catch (err) {
       console.error('confirmarRenombrar:', err)
-      toast.error('No pudimos renombrar el perfil.')
+      if (err.code === '23505') {
+        setErrorRenombrar('Ya tenés un perfil con ese nombre.')
+      } else {
+        setPerfilARenombrar(null)
+        toast.error('No pudimos renombrar el perfil.')
+      }
     } finally {
       setRenombrando(false)
     }
@@ -148,6 +156,7 @@ export default function Perfiles() {
         onConfirmar={confirmarRenombrar}
         textoConfirmar="Guardar"
         loading={renombrando}
+        error={errorRenombrar}
       />
 
       <ModalConfirmacion
