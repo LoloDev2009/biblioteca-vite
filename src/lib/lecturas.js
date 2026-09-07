@@ -1,5 +1,4 @@
 import { supabase } from './supabase'
-import { actualizarLibro } from './libros'
 import { listarPerfiles } from './perfiles'
 
 export async function listarLecturasDeLibro(libroId) {
@@ -8,7 +7,9 @@ export async function listarLecturasDeLibro(libroId) {
   return data
 }
 
-// Mapa libro_id -> [perfil_id, ...], para el filtro "leído por" del catálogo.
+// Mapa libro_id -> [perfil_id, ...], para el filtro "leído por" del catálogo
+// y para saber cuántos/qué perfiles leyeron cada libro sin hacer una consulta
+// por libro (evita N+1).
 export async function listarLecturasPorLibro() {
   const { data, error } = await supabase.from('lecturas').select('libro_id, perfil_id')
   if (error) throw error
@@ -23,18 +24,11 @@ export async function listarLecturasPorLibro() {
 export async function marcarLeidoPor(libroId, perfilId) {
   const { error } = await supabase.from('lecturas').insert({ libro_id: libroId, perfil_id: perfilId })
   if (error && error.code !== '23505') throw error // 23505 = ya estaba marcado, no es un error real
-  await actualizarLibro(libroId, { leido: true })
 }
 
 export async function quitarLecturaDe(libroId, perfilId) {
   const { error } = await supabase.from('lecturas').delete().eq('libro_id', libroId).eq('perfil_id', perfilId)
   if (error) throw error
-
-  const { count } = await supabase
-    .from('lecturas')
-    .select('id', { count: 'exact', head: true })
-    .eq('libro_id', libroId)
-  if (!count) await actualizarLibro(libroId, { leido: false })
 }
 
 export async function actualizarLectura(lecturaId, cambios) {

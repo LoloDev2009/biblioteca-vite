@@ -87,6 +87,13 @@ export default function LecturasLibro({ libroId }) {
   return (
     <div className="lecturas-libro">
       <h3>¿Quién lo leyó?</h3>
+      <p className="resumen-lecturas">
+        {lecturas.length === 0
+          ? 'Todavía nadie lo leyó.'
+          : lecturas.length === perfiles.length
+            ? 'Todos lo leyeron.'
+            : `${lecturas.length} de ${perfiles.length} perfiles lo leyeron.`}
+      </p>
       <div className="chips-lecturas">
         {perfiles.map((perfil) => {
           const lectura = lecturas.find((l) => l.perfil_id === perfil.id)

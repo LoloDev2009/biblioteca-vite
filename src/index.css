@@ -407,6 +407,7 @@ select:focus-visible {
   box-shadow: var(--sombra-sm);
 }
 .lecturas-libro h3 { font-size: 1rem; color: var(--petroleo-oscuro); margin-bottom: 0.8rem; }
+.resumen-lecturas { font-size: 0.85rem; color: var(--tinta-suave); margin: -0.5rem 0 0.8rem; }
 .chips-lecturas { display: flex; flex-wrap: wrap; gap: 0.6rem; }
 .chip-lectura-wrap { position: relative; }
 .chip-lectura {
@@ -554,6 +555,7 @@ button:disabled { opacity: 0.6; cursor: not-allowed; }
 .check-leido { flex-direction: row !important; align-items: center; gap: 0.55rem !important; }
 .check-leido input { width: 17px; height: 17px; accent-color: var(--petroleo); padding: 0; }
 .preview-portada { width: 110px; border-radius: var(--radio-chico); align-self: flex-start; box-shadow: var(--sombra-sm); }
+.ayuda-form { font-size: 0.85rem; color: var(--tinta-suave); margin: -0.5rem 0 0; }
 .acciones-form { display: flex; gap: 0.65rem; }
 
 .form-libro textarea {

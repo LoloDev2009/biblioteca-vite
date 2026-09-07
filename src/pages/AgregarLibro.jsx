@@ -13,7 +13,6 @@ const LIBRO_VACIO = {
   isbn: '',
   estante: '',
   editorial: '',
-  leido: false,
   favorito: false,
   saga: '',
   numero_saga: '',
@@ -21,9 +20,7 @@ const LIBRO_VACIO = {
   idioma: '',
   paginas: '',
   ejemplares_totales: '',
-  puntuacion: '',
   descripcion: '',
-  resena: '',
   notas: '',
 }
 
@@ -117,7 +114,6 @@ export default function AgregarLibro() {
         anio_publicacion: form.anio_publicacion === '' ? null : Number(form.anio_publicacion),
         paginas: form.paginas === '' ? null : Number(form.paginas),
         ejemplares_totales: form.ejemplares_totales === '' ? null : Number(form.ejemplares_totales),
-        puntuacion: form.puntuacion === '' ? null : Number(form.puntuacion),
         numero_saga: form.numero_saga === '' ? null : Number(form.numero_saga),
       })
       navigate('/')
@@ -205,19 +201,14 @@ export default function AgregarLibro() {
         <label className="check-leido">
           <input
             type="checkbox"
-            checked={form.leido}
-            onChange={(e) => handleChange('leido', e.target.checked)}
-          />
-          Leído (general, sin especificar quién — para eso están los perfiles en el detalle)
-        </label>
-        <label className="check-leido">
-          <input
-            type="checkbox"
             checked={form.favorito}
             onChange={(e) => handleChange('favorito', e.target.checked)}
           />
           ★ Favorito
         </label>
+        <p className="ayuda-form">
+          Después de guardar, marcá quién lo leyó (y su puntuación/reseña) desde la ficha del libro.
+        </p>
 
         {form.portada_url && (
           <img className="preview-portada" src={form.portada_url} alt="preview" />
@@ -282,30 +273,11 @@ export default function AgregarLibro() {
             </label>
           </div>
           <label>
-            Puntuación (0 a 5)
-            <input
-              type="number"
-              min="0"
-              max="5"
-              step="0.5"
-              value={form.puntuacion}
-              onChange={(e) => handleChange('puntuacion', e.target.value)}
-            />
-          </label>
-          <label>
             Descripción
             <textarea
               rows={3}
               value={form.descripcion}
               onChange={(e) => handleChange('descripcion', e.target.value)}
-            />
-          </label>
-          <label>
-            Mi reseña
-            <textarea
-              rows={3}
-              value={form.resena}
-              onChange={(e) => handleChange('resena', e.target.value)}
             />
           </label>
           <label>

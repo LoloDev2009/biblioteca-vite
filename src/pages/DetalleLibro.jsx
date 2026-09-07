@@ -197,10 +197,9 @@ function SeccionDetalles({ libro }) {
     { etiqueta: 'Idioma', valor: libro.idioma },
     { etiqueta: 'Páginas', valor: libro.paginas },
     { etiqueta: 'Ejemplares', valor: libro.ejemplares_totales },
-    { etiqueta: 'Puntuación general', valor: libro.puntuacion != null ? `${libro.puntuacion} / 5` : null },
   ].filter((d) => d.valor !== null && d.valor !== undefined && d.valor !== '')
 
-  const tieneTextoLargo = libro.descripcion || libro.resena || libro.notas
+  const tieneTextoLargo = libro.descripcion || libro.notas
 
   if (datos.length === 0 && !tieneTextoLargo) return null
 
@@ -223,13 +222,6 @@ function SeccionDetalles({ libro }) {
         <div className="bloque-texto">
           <h4>Descripción</h4>
           <p>{libro.descripcion}</p>
-        </div>
-      )}
-
-      {libro.resena && (
-        <div className="bloque-texto">
-          <h4>Reseña general</h4>
-          <p>{libro.resena}</p>
         </div>
       )}
 

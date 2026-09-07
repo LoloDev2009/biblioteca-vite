@@ -307,7 +307,7 @@ $$;
 drop function if exists obtener_familia_actual();
 drop function if exists set_familia_id();
 drop function if exists familia_esta_activa(uuid);
-drop table if exists miembros_familia;
+drop table if exists miembros_familia cascade;
 drop table if exists familias;
 
 -- ============================================================

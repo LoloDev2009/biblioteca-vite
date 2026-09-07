@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { listarPorEstante } from '../lib/libros'
+import { listarLecturasPorLibro } from '../lib/lecturas'
 import EmptyState from '../components/EmptyState.jsx'
 import ErrorState from '../components/ErrorState.jsx'
 import { LoadingPagina } from '../components/Loading.jsx'
@@ -19,6 +20,7 @@ function colorPara(genero) {
 
 export default function Estantes() {
   const [grupos, setGrupos] = useState({})
+  const [mapaLecturas, setMapaLecturas] = useState({})
   const [cargando, setCargando] = useState(true)
   const [error, setError] = useState(null)
 
@@ -29,8 +31,11 @@ export default function Estantes() {
   function cargar() {
     setCargando(true)
     setError(null)
-    listarPorEstante()
-      .then(setGrupos)
+    Promise.all([listarPorEstante(), listarLecturasPorLibro()])
+      .then(([gruposData, mapa]) => {
+        setGrupos(gruposData)
+        setMapaLecturas(mapa)
+      })
       .catch((err) => {
         console.error('cargar (Estantes):', err)
         setError('No pudimos cargar la estantería.')
@@ -72,7 +77,7 @@ export default function Estantes() {
                 title={`${libro.titulo} — ${libro.autor || 'autor desconocido'}`}
               >
                 <span>{libro.titulo}</span>
-                {libro.leido && <span className="marca-leido" title="Leído">●</span>}
+                {(mapaLecturas[libro.id]?.length > 0) && <span className="marca-leido" title="Leído">●</span>}
               </Link>
             ))}
           </div>

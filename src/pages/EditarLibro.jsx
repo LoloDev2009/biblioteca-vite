@@ -58,7 +58,6 @@ export default function EditarLibro() {
         editorial: form.editorial,
         isbn: form.isbn,
         estante: form.estante,
-        leido: form.leido,
         favorito: form.favorito,
         saga: form.saga || null,
         numero_saga: form.numero_saga === '' ? null : Number(form.numero_saga),
@@ -66,9 +65,7 @@ export default function EditarLibro() {
         idioma: form.idioma || null,
         paginas: form.paginas === '' ? null : Number(form.paginas),
         ejemplares_totales: form.ejemplares_totales === '' ? null : Number(form.ejemplares_totales),
-        puntuacion: form.puntuacion === '' ? null : Number(form.puntuacion),
         descripcion: form.descripcion || null,
-        resena: form.resena || null,
         notas: form.notas || null,
       })
       navigate(`/libro/${id}`)

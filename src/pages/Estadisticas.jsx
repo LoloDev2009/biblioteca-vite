@@ -42,8 +42,9 @@ export default function Estadisticas() {
 
       <div className="grid-metricas">
         <MetricaCard valor={stats.total} etiqueta="Libros en total" />
-        <MetricaCard valor={`${porcentajeLeidos}%`} etiqueta={`Leídos (${stats.leidos} de ${stats.total})`} />
+        <MetricaCard valor={`${porcentajeLeidos}%`} etiqueta={`Leídos por alguien (${stats.leidos} de ${stats.total})`} />
         <MetricaCard valor={stats.sinLeer} etiqueta="Pendientes de leer" />
+        <MetricaCard valor={stats.cantidadLecturas} etiqueta="Lecturas registradas (todas las personas)" />
         <MetricaCard
           valor={stats.promedioPuntuacion != null ? stats.promedioPuntuacion.toFixed(1) : '—'}
           etiqueta="Puntuación promedio"

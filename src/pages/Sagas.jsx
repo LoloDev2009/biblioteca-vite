@@ -1,12 +1,14 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { listarPorSaga } from '../lib/libros'
+import { listarLecturasPorLibro } from '../lib/lecturas'
 import EmptyState from '../components/EmptyState.jsx'
 import ErrorState from '../components/ErrorState.jsx'
 import { LoadingPagina } from '../components/Loading.jsx'
 
 export default function Sagas() {
   const [grupos, setGrupos] = useState({})
+  const [mapaLecturas, setMapaLecturas] = useState({})
   const [cargando, setCargando] = useState(true)
   const [error, setError] = useState(null)
 
@@ -17,8 +19,11 @@ export default function Sagas() {
   function cargar() {
     setCargando(true)
     setError(null)
-    listarPorSaga()
-      .then(setGrupos)
+    Promise.all([listarPorSaga(), listarLecturasPorLibro()])
+      .then(([gruposData, mapa]) => {
+        setGrupos(gruposData)
+        setMapaLecturas(mapa)
+      })
       .catch((err) => {
         console.error('cargar (Sagas):', err)
         setError('No pudimos cargar las sagas.')
@@ -50,7 +55,7 @@ export default function Sagas() {
       <h2>Sagas</h2>
       {nombresSagas.map((nombre) => {
         const libros = grupos[nombre]
-        const leidos = libros.filter((l) => l.leido).length
+        const leidos = libros.filter((l) => mapaLecturas[l.id]?.length > 0).length
         return (
           <div key={nombre} className="saga-bloque">
             <div className="saga-encabezado">
@@ -66,7 +71,7 @@ export default function Sagas() {
                   ) : (
                     <div className="sin-portada">Sin portada</div>
                   )}
-                  {!libro.leido && <span className="badge-sin-leer">Sin leer</span>}
+                  {!(mapaLecturas[libro.id]?.length > 0) && <span className="badge-sin-leer">Sin leer</span>}
                   <div className="mini-info">
                     <strong>{libro.titulo}</strong>
                     {libro.anio_publicacion && <span>{libro.anio_publicacion}</span>}

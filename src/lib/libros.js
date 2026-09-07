@@ -1,7 +1,7 @@
 import { supabase } from './supabase'
 import { variantesIsbn } from './isbn'
 
-const COLUMNAS_ORDEN = ['titulo', 'autor', 'anio_publicacion', 'puntuacion', 'creado_en']
+const COLUMNAS_ORDEN = ['titulo', 'autor', 'anio_publicacion', 'creado_en']
 
 function ordenarEnJs(lista, ordenPor, ordenAsc) {
   const columna = COLUMNAS_ORDEN.includes(ordenPor) ? ordenPor : 'titulo'
@@ -24,7 +24,6 @@ export async function listarLibros({
   saga,
   idioma,
   estante,
-  leido,
   favorito,
   ordenPor = 'titulo',
   ordenAsc = true,
@@ -44,7 +43,6 @@ export async function listarLibros({
     if (saga) resultado = resultado.filter((l) => l.saga === saga)
     if (idioma) resultado = resultado.filter((l) => l.idioma === idioma)
     if (estante) resultado = resultado.filter((l) => l.estante === estante)
-    if (typeof leido === 'boolean') resultado = resultado.filter((l) => l.leido === leido)
     if (typeof favorito === 'boolean') resultado = resultado.filter((l) => l.favorito === favorito)
 
     return ordenarEnJs(resultado, ordenPor, ordenAsc)
@@ -56,7 +54,6 @@ export async function listarLibros({
   if (saga) query = query.eq('saga', saga)
   if (idioma) query = query.eq('idioma', idioma)
   if (estante) query = query.eq('estante', estante)
-  if (typeof leido === 'boolean') query = query.eq('leido', leido)
   if (typeof favorito === 'boolean') query = query.eq('favorito', favorito)
 
   const columna = COLUMNAS_ORDEN.includes(ordenPor) ? ordenPor : 'titulo'
@@ -150,9 +147,17 @@ export async function listarPorSaga() {
 }
 
 // Calcula las métricas para el dashboard de estadísticas.
+// "Leídos" = libros con al menos una lectura registrada (de cualquier
+// perfil). La puntuación promedio se calcula sobre todas las lecturas
+// puntuadas (cada perfil cuenta su propia puntuación por separado).
 export async function obtenerEstadisticas() {
   const { data: libros, error } = await supabase.from('libros').select('*')
   if (error) throw error
+
+  const { data: lecturas, error: errorLecturas } = await supabase
+    .from('lecturas')
+    .select('libro_id, puntuacion')
+  if (errorLecturas) throw errorLecturas
 
   const { count: enWishlist } = await supabase
     .from('wishlist')
@@ -163,24 +168,25 @@ export async function obtenerEstadisticas() {
     .select('id', { count: 'exact', head: true })
     .is('fecha_devolucion', null)
 
+  const librosLeidosIds = new Set(lecturas.map((l) => l.libro_id))
+
   const total = libros.length
-  const leidos = libros.filter((l) => l.leido).length
+  const leidos = libros.filter((l) => librosLeidosIds.has(l.id)).length
 
   const porGenero = {}
   const porAutor = {}
-  let sumaPuntuacion = 0
-  let cantidadPuntuados = 0
   let paginasLeidas = 0
 
   for (const l of libros) {
     if (l.genero) porGenero[l.genero] = (porGenero[l.genero] || 0) + 1
     if (l.autor) porAutor[l.autor] = (porAutor[l.autor] || 0) + 1
-    if (l.puntuacion != null) {
-      sumaPuntuacion += Number(l.puntuacion)
-      cantidadPuntuados++
-    }
-    if (l.leido && l.paginas) paginasLeidas += Number(l.paginas)
+    if (librosLeidosIds.has(l.id) && l.paginas) paginasLeidas += Number(l.paginas)
   }
+
+  const puntuados = lecturas.filter((l) => l.puntuacion != null)
+  const promedioPuntuacion = puntuados.length
+    ? puntuados.reduce((acc, l) => acc + Number(l.puntuacion), 0) / puntuados.length
+    : null
 
   const topGeneros = Object.entries(porGenero).sort((a, b) => b[1] - a[1]).slice(0, 5)
   const topAutores = Object.entries(porAutor).sort((a, b) => b[1] - a[1]).slice(0, 5)
@@ -189,7 +195,8 @@ export async function obtenerEstadisticas() {
     total,
     leidos,
     sinLeer: total - leidos,
-    promedioPuntuacion: cantidadPuntuados ? sumaPuntuacion / cantidadPuntuados : null,
+    cantidadLecturas: lecturas.length,
+    promedioPuntuacion,
     paginasLeidas,
     topGeneros,
     topAutores,

@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { listarLibros, listarValoresFiltro, actualizarLibro, eliminarLibro } from '../lib/libros'
 import { listarPrestamosActivosPorLibro, prestarLibro } from '../lib/prestamos'
 import { listarPerfiles } from '../lib/perfiles'
-import { listarLecturasPorLibro } from '../lib/lecturas'
+import { listarLecturasPorLibro, marcarLeidoPor, quitarLecturaDe } from '../lib/lecturas'
 import { toast } from '../lib/toast'
 import ModalConfirmacion from '../components/ModalConfirmacion.jsx'
 import ModalInput from '../components/ModalInput.jsx'
@@ -17,8 +17,6 @@ const OPCIONES_ORDEN = [
   { valor: 'autor-desc', etiqueta: 'Autor (Z-A)', ordenPor: 'autor', ordenAsc: false },
   { valor: 'anio-asc', etiqueta: 'Año ascendente', ordenPor: 'anio_publicacion', ordenAsc: true },
   { valor: 'anio-desc', etiqueta: 'Año descendente', ordenPor: 'anio_publicacion', ordenAsc: false },
-  { valor: 'puntuacion-desc', etiqueta: 'Puntuación mayor a menor', ordenPor: 'puntuacion', ordenAsc: false },
-  { valor: 'puntuacion-asc', etiqueta: 'Puntuación menor a mayor', ordenPor: 'puntuacion', ordenAsc: true },
   { valor: 'creado_en-desc', etiqueta: 'Agregado recientemente', ordenPor: 'creado_en', ordenAsc: false },
   { valor: 'creado_en-asc', etiqueta: 'Agregado más antiguo', ordenPor: 'creado_en', ordenAsc: true },
 ]
@@ -37,6 +35,7 @@ export default function Catalogo() {
   const navigate = useNavigate()
   const [libros, setLibros] = useState([])
   const [prestamosPorLibro, setPrestamosPorLibro] = useState({})
+  const [mapaLecturas, setMapaLecturas] = useState({})
   const [perfiles, setPerfiles] = useState([])
   const [leidoPor, setLeidoPor] = useState('')
   const [opciones, setOpciones] = useState({ generos: [], autores: [], sagas: [], idiomas: [], estantes: [] })
@@ -103,7 +102,7 @@ export default function Catalogo() {
     setCargando(true)
     try {
       const opcionOrden = OPCIONES_ORDEN.find((o) => o.valor === orden) || OPCIONES_ORDEN[0]
-      const [data, mapaPrestamos, mapaLecturas] = await Promise.all([
+      const [data, mapaPrestamos, mapaLecturasNueva] = await Promise.all([
         listarLibros({
           busqueda,
           genero,
@@ -111,7 +110,6 @@ export default function Catalogo() {
           saga,
           idioma,
           estante,
-          leido: estadoLectura === 'todos' ? undefined : estadoLectura === 'leidos',
           favorito: soloFavoritos ? true : undefined,
           ordenPor: opcionOrden.ordenPor,
           ordenAsc: opcionOrden.ordenAsc,
@@ -123,10 +121,13 @@ export default function Catalogo() {
       let resultado = data
       if (estadoPrestamo === 'prestados') resultado = resultado.filter((l) => mapaPrestamos[l.id])
       if (estadoPrestamo === 'disponibles') resultado = resultado.filter((l) => !mapaPrestamos[l.id])
-      if (leidoPor) resultado = resultado.filter((l) => (mapaLecturas[l.id] || []).includes(leidoPor))
+      if (estadoLectura === 'leidos') resultado = resultado.filter((l) => (mapaLecturasNueva[l.id]?.length || 0) > 0)
+      if (estadoLectura === 'sinLeer') resultado = resultado.filter((l) => !(mapaLecturasNueva[l.id]?.length > 0))
+      if (leidoPor) resultado = resultado.filter((l) => (mapaLecturasNueva[l.id] || []).includes(leidoPor))
 
       setLibros(resultado)
       setPrestamosPorLibro(mapaPrestamos)
+      setMapaLecturas(mapaLecturasNueva)
       setError(null)
     } catch (err) {
       console.error('cargar (Catalogo):', err)
@@ -197,14 +198,25 @@ export default function Catalogo() {
     setMenuAbiertoId((actual) => (actual === libroId ? null : libroId))
   }
 
+  // Solo tiene sentido como acción de un clic cuando hay exactamente un
+  // perfil de lectura: ahí no hay ambigüedad sobre a quién marcar. Con 0 o
+  // 2+ perfiles, esta acción no se muestra en el menú (ver MenuAccionesRapidas)
+  // y hay que resolverlo desde la ficha del libro, donde se elige el perfil.
   async function handleMarcarLeido(e, libro) {
     e.preventDefault()
     e.stopPropagation()
     setMenuAbiertoId(null)
+    const perfil = perfiles[0]
+    const yaLeido = (mapaLecturas[libro.id] || []).includes(perfil.id)
     try {
-      await actualizarLibro(libro.id, { leido: !libro.leido })
-      setLibros((prev) => prev.map((l) => (l.id === libro.id ? { ...l, leido: !l.leido } : l)))
-      toast.success(libro.leido ? 'Marcado como no leído.' : 'Marcado como leído.')
+      if (yaLeido) {
+        await quitarLecturaDe(libro.id, perfil.id)
+        setMapaLecturas((prev) => ({ ...prev, [libro.id]: (prev[libro.id] || []).filter((id) => id !== perfil.id) }))
+      } else {
+        await marcarLeidoPor(libro.id, perfil.id)
+        setMapaLecturas((prev) => ({ ...prev, [libro.id]: [...(prev[libro.id] || []), perfil.id] }))
+      }
+      toast.success(yaLeido ? 'Marcado como no leído.' : 'Marcado como leído.')
     } catch (err) {
       console.error('handleMarcarLeido:', err)
       toast.error('No pudimos actualizar el estado de lectura.')
@@ -421,7 +433,7 @@ export default function Catalogo() {
                 ) : (
                   <div className="sin-portada">Sin portada</div>
                 )}
-                {!libro.leido && <span className="badge-sin-leer">Sin leer</span>}
+                {!(mapaLecturas[libro.id]?.length > 0) && <span className="badge-sin-leer">Sin leer</span>}
                 {prestamosPorLibro[libro.id] && <span className="badge-prestado">Prestado</span>}
                 <button
                   type="button"
@@ -433,6 +445,8 @@ export default function Catalogo() {
                 </button>
                 <MenuAccionesRapidas
                   libro={libro}
+                  leidoPorMi={perfiles.length === 1 && (mapaLecturas[libro.id] || []).includes(perfiles[0].id)}
+                  mostrarMarcarLeido={perfiles.length === 1}
                   abierto={menuAbiertoId === libro.id}
                   prestado={!!prestamosPorLibro[libro.id]}
                   onAbrir={(e) => handleAbrirMenu(e, libro.id)}
@@ -463,15 +477,26 @@ export default function Catalogo() {
                 <strong>{libro.titulo}</strong>
                 <span>{libro.autor}{libro.anio_publicacion ? ` · ${libro.anio_publicacion}` : ''}</span>
                 <div className="fila-libro-badges">
-                  <span className={`estado-pill ${libro.leido ? 'leido' : ''}`}>
-                    {libro.leido ? 'Leído' : 'Sin leer'}
-                  </span>
+                  {(() => {
+                    const cantidadLeyeron = mapaLecturas[libro.id]?.length || 0
+                    return (
+                      <span className={`estado-pill ${cantidadLeyeron > 0 ? 'leido' : ''}`}>
+                        {cantidadLeyeron === 0
+                          ? 'Sin leer'
+                          : perfiles.length > 1
+                            ? `Leído (${cantidadLeyeron}/${perfiles.length})`
+                            : 'Leído'}
+                      </span>
+                    )
+                  })()}
                   {prestamosPorLibro[libro.id] && <span className="estado-pill prestado">Prestado</span>}
                   {libro.favorito && <span className="estado-pill favorito">★ Favorito</span>}
                 </div>
               </div>
               <MenuAccionesRapidas
                 libro={libro}
+                leidoPorMi={perfiles.length === 1 && (mapaLecturas[libro.id] || []).includes(perfiles[0].id)}
+                mostrarMarcarLeido={perfiles.length === 1}
                 abierto={menuAbiertoId === libro.id}
                 prestado={!!prestamosPorLibro[libro.id]}
                 onAbrir={(e) => handleAbrirMenu(e, libro.id)}
@@ -515,15 +540,27 @@ export default function Catalogo() {
   )
 }
 
-function MenuAccionesRapidas({ libro, abierto, prestado, onAbrir, onMarcarLeido, onPrestar, onEditar, onEliminar }) {
+function MenuAccionesRapidas({
+  leidoPorMi,
+  mostrarMarcarLeido,
+  abierto,
+  prestado,
+  onAbrir,
+  onMarcarLeido,
+  onPrestar,
+  onEditar,
+  onEliminar,
+}) {
   return (
     <div className="menu-acciones-rapidas" onClick={(e) => e.stopPropagation()}>
       <button type="button" className="boton-kebab" onClick={onAbrir} aria-label="Más acciones">⋯</button>
       {abierto && (
         <div className="menu-desplegable">
-          <button type="button" onClick={onMarcarLeido}>
-            {libro.leido ? 'Marcar como no leído' : 'Marcar como leído'}
-          </button>
+          {mostrarMarcarLeido && (
+            <button type="button" onClick={onMarcarLeido}>
+              {leidoPorMi ? 'Marcar como no leído' : 'Marcar como leído'}
+            </button>
+          )}
           {!prestado && <button type="button" onClick={onPrestar}>Prestar</button>}
           <button type="button" onClick={onEditar}>Editar</button>
           <button type="button" className="opcion-eliminar" onClick={onEliminar}>Eliminar</button>
