@@ -1,8 +1,9 @@
 -- Ejecutar esto en el SQL Editor de Supabase (Project > SQL Editor > New query)
--- Esquema completo y al día, con autenticación desde el principio: cada
--- usuario autenticado tiene su propia biblioteca, completamente aislada de
--- las demás. Si ya tenías una base creada de antes, NO corras esto: usá las
--- migraciones (migration_2.sql en adelante, en orden) sobre tu base real.
+-- Esquema completo y al día (incluye migration_2.sql a migration_11.sql), con
+-- autenticación desde el principio: cada usuario autenticado tiene su propia
+-- biblioteca, completamente aislada de las demás. Si ya tenías una base
+-- creada de antes, NO corras esto: usá las migraciones (migration_2.sql en
+-- adelante, en orden) sobre tu base real.
 
 create extension if not exists unaccent;
 
@@ -16,7 +17,6 @@ create table libros (
   isbn text,
   estante text,
   editorial text,
-  leido boolean not null default false,
   favorito boolean not null default false,
   anio_publicacion integer,
   ejemplares_totales integer,
@@ -26,8 +26,6 @@ create table libros (
   idioma text,
   saga text,
   numero_saga numeric,
-  resena text,
-  puntuacion numeric,
   creado_en timestamptz default now()
 );
 
@@ -73,8 +71,6 @@ create table libro_tags (
 
 -- Perfiles de lectura: personas de tu casa (ej. "Yo", "Mamá", "Papá") que
 -- no necesitan cuenta propia, solo sirven para marcar quién leyó cada libro.
--- libros.puntuacion/resena quedan aparte, como el histórico "general" del
--- libro; la puntuación/reseña de cada perfil vive en "lecturas".
 create table perfiles (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references auth.users(id),
@@ -83,6 +79,10 @@ create table perfiles (
 );
 create unique index perfiles_nombre_usuario_unico on perfiles (user_id, nombre);
 
+-- lecturas es la ÚNICA fuente de verdad sobre si un libro fue leído: existe
+-- una fila para (libro_id, perfil_id) si y solo si ese perfil lo leyó. No hay
+-- ningún "leído/puntuación/reseña general" a nivel libro — cada perfil tiene
+-- su propia puntuación y reseña acá.
 create table lecturas (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references auth.users(id),
