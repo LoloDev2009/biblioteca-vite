@@ -215,6 +215,25 @@ export async function obtenerLibro(id) {
   return data
 }
 
+// Convierte los valores "vacíos" del formulario (que en los <input> siempre
+// son '') al tipo real que espera la columna en Supabase, de forma idéntica
+// sin importar si el libro se está creando o editando: los campos numéricos
+// pasan a null (no a '', que rompería una columna numeric), y estos 4 campos
+// de texto opcionales también pasan a null en vez de quedar como ''.
+export function normalizarFormLibro(form) {
+  return {
+    ...form,
+    saga: form.saga || null,
+    idioma: form.idioma || null,
+    descripcion: form.descripcion || null,
+    notas: form.notas || null,
+    numero_saga: form.numero_saga === '' ? null : Number(form.numero_saga),
+    anio_publicacion: form.anio_publicacion === '' ? null : Number(form.anio_publicacion),
+    paginas: form.paginas === '' ? null : Number(form.paginas),
+    ejemplares_totales: form.ejemplares_totales === '' ? null : Number(form.ejemplares_totales),
+  }
+}
+
 export async function crearLibro(libro) {
   const { data, error } = await supabase.from('libros').insert(libro).select().single()
   if (error) throw error

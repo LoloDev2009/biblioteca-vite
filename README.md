@@ -6,9 +6,9 @@ App web responsive para catalogar los libros de tu casa y llevar registro de pr�
 
 ### 1. Crear el proyecto en Supabase
 1. Andá a https://supabase.com y creá una cuenta / proyecto nuevo (plan free).
-2. En el proyecto, andá a **SQL Editor** → **New query**, pegá el contenido de `schema.sql` y ejecutalo. Esto crea las tablas `libros`, `prestamos` y `wishlist`.
+2. En el proyecto, andá a **SQL Editor** → **New query**, pegá el contenido de `schema.sql` y ejecutalo. Esto crea todas las tablas (`libros`, `prestamos`, `wishlist`, `tags`, `perfiles`, `lecturas`, `cuentas`, `super_admins`) y sus políticas de RLS.
    - Si ya tenías la base creada de antes, en vez de `schema.sql` corré las migraciones en orden
-     (`migration_2.sql`, `migration_3.sql`, `migration_4.sql`, `migration_5.sql`, `migration_6.sql`, `migration_7.sql`, `migration_8.sql`, `migration_9.sql`) sin borrar nada de lo que ya tenés.
+     (`migration_2.sql` a `migration_11.sql`) sin borrar nada de lo que ya tenés.
 3. Andá a **Project Settings → API** y copiá:
    - `Project URL`
    - `anon public key` (en proyectos nuevos puede figurar como "Publishable key" — es lo mismo)
@@ -122,15 +122,15 @@ lo reactivás y está todo como lo dejó.
   el acceso de cada uno sin borrar sus datos. Ver la sección "Panel de administración" más arriba.
 - **UX**: notificaciones toast en las acciones principales (agregar, editar, prestar, devolver, marcar leído, eliminar), skeleton loading mientras carga el catálogo, estados vacíos con acciones directas (agregar primer libro, limpiar búsqueda), bloqueo de eliminación si el libro está prestado, y sidebar en 3 niveles según el ancho de pantalla (completo en desktop, angosto en tablet, menú desplegable en mobile)
 - **Perfiles de lectura**: cargá a las personas de tu casa (sin que necesiten cuenta propia). Cada libro se puede marcar como "leído por" cada perfil, con su propia puntuación y reseña — así tu biblioteca no depende de un único "leído: sí/no" que mezcla a todos
-- **Catálogo**: búsqueda multi-campo (título, autor, ISBN, saga, género, idioma, notas), sin distinguir mayúsculas ni acentos; filtros combinables de género/autor/saga/idioma/estante/estado de lectura/estado de préstamo/favoritos/leído por integrante; chips de filtros activos con opción de sacarlos uno por uno o todos juntos; orden configurable (título, autor, año, puntuación, agregado) que se recuerda entre sesiones; vista en cuadrícula o en lista (también recordada); menú de acciones rápidas por libro (marcar leído general, prestar, editar, eliminar) sin entrar al detalle; botón flotante de agregar en mobile
+- **Catálogo**: búsqueda multi-campo (título, autor, ISBN, saga, género, idioma, notas), sin distinguir mayúsculas ni acentos; filtros combinables de género/autor/saga/idioma/estante/estado de lectura/estado de préstamo/favoritos/leído por integrante; chips de filtros activos con opción de sacarlos uno por uno o todos juntos; orden configurable (título, autor, año, agregado) que se recuerda entre sesiones; vista en cuadrícula o en lista (también recordada); menú de acciones rápidas por libro (marcar leído — solo si tenés un único perfil de lectura, para no adivinar a cuál asignárselo; prestar, editar, eliminar) sin entrar al detalle; botón flotante de agregar en mobile
 - **Favoritos**: marcar/desmarcar con un clic desde la card del catálogo o desde el detalle, sin entrar a editar
 - **Etiquetas**: agregar tags libres a cada libro desde su detalle (se crean al vuelo si no existen)
 - **Detección de duplicados**: al agregar un libro, si ya existe uno con el mismo ISBN (en cualquier formato, 10 o 13 dígitos) o el mismo título+autor, avisa antes de guardar
-- **Detalle de libro**: ver datos + sección "¿Quién lo leyó?" (marcar/desmarcar por integrante, con puntuación y reseña propia de cada uno) + sección de "más detalles" (saga, año, idioma, páginas, puntuación general, descripción, reseña general, notas), marcar favorito, prestar y registrar devolución, editar, eliminar
+- **Detalle de libro**: ver datos + sección "¿Quién lo leyó?" (marcar/desmarcar por integrante, con puntuación y reseña propia de cada uno, y un resumen "X de Y perfiles lo leyeron") + sección de "más detalles" (saga, año, idioma, páginas, descripción, notas), marcar favorito, prestar y registrar devolución, editar, eliminar
 - **Editar / Agregar**: todos los campos, incluidos los extendidos, en una sección "Más detalles"; autocompletado por ISBN escaneando con la cámara o escribiendo el código a mano
 - **Estantes**: vista de estantería con los libros como lomos de colores, agrupados por estante
 - **Sagas**: libros agrupados por colección/saga, ordenados por N° de tomo (o año si no lo cargaste), con progreso de lectura
-- **Estadísticas**: total de libros, % leídos, páginas leídas en total, puntuación promedio, préstamos activos, en wishlist, géneros y autores más frecuentes, y un desglose de libros/páginas leídas y puntuación promedio **por perfil de lectura**
+- **Estadísticas**: total de libros, % leídos por al menos un perfil, cantidad de lecturas registradas (todas las personas), páginas leídas en total, puntuación promedio, préstamos activos, en wishlist, géneros y autores más frecuentes, y un desglose de libros/páginas leídas y puntuación promedio **por perfil de lectura**
 - **Wishlist**: anotar libros que querés conseguir (con autocompletado por ISBN opcional); al conseguirlos, pasan al catálogo con un clic
 - **Préstamos**: listado de préstamos activos con devolución rápida
 
@@ -148,7 +148,7 @@ src/
     supabase.js       -> cliente de Supabase
     auth.js            -> login (magic link/contraseña)
     admin.js            -> funciones del panel de super-admin
-    libros.js             -> CRUD de libros + filtro leído + agrupado por estante
+    libros.js             -> CRUD de libros + estadísticas + agrupado por estante/saga
     prestamos.js           -> CRUD de préstamos
     wishlist.js             -> CRUD de wishlist + pasaje a catálogo
     perfiles.js              -> CRUD de perfiles de lectura
@@ -172,17 +172,12 @@ src/
     Admin.jsx                               -> panel de super-admin (todos los usuarios)
 ```
 
-## Importar datos de otra base
-Si ya tenés libros cargados en otra base PostgreSQL, ver `scripts/README.md`
-para el paso a paso (migración de esquema + export CSV + script de importación).
-
 ## Notas
-- La columna `libros.leido` sigue existiendo, pero ahora se actualiza sola: pasa a `true` en
-  cuanto alguien queda marcado como lector en "¿Quién lo leyó?", y vuelve a `false` si se
-  sacan todas las lecturas. Sirve como cache rápido para el filtro "Sin leer" del catálogo.
-  Los campos `libros.puntuacion`/`libros.resena` quedan como el histórico general (por ejemplo,
-  lo que trajiste de la importación vieja) y no se tocan automáticamente; la puntuación y
-  reseña de cada perfil vive en la tabla `lecturas`.
+- El estado de lectura no se guarda en `libros`: la tabla `lecturas` es la única fuente de verdad
+  sobre si un libro fue leído. Existe una fila en `lecturas` para `(libro_id, perfil_id)` si y solo
+  si ese perfil lo leyó — no existe ningún "leído/puntuación/reseña general" a nivel libro. Si la UI
+  necesita mostrar un estado global (por ejemplo "2 de 3 perfiles lo leyeron"), se calcula al vuelo
+  a partir de `lecturas`, nunca se guarda como un campo aparte.
 - Las políticas de RLS en `schema.sql` ya vienen listas para multi-usuario desde el principio
   (`user_id = auth.uid()`), no hace falta ninguna migración extra para instalaciones nuevas.
 - El campo `estante` no lo completa Open Library — siempre se ingresa a mano.

@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { obtenerLibro, actualizarLibro, listarValoresFiltro } from '../lib/libros'
+import { obtenerLibro, actualizarLibro, normalizarFormLibro } from '../lib/libros'
 import { toast } from '../lib/toast'
 import ErrorState from '../components/ErrorState.jsx'
 import { LoadingPagina } from '../components/Loading.jsx'
+import FormLibro from '../components/FormLibro.jsx'
 
 export default function EditarLibro() {
   const { id } = useParams()
@@ -12,18 +13,9 @@ export default function EditarLibro() {
   const [guardando, setGuardando] = useState(false)
   const [mensaje, setMensaje] = useState(null)
   const [errorCarga, setErrorCarga] = useState(null)
-  const [sugerencias, setSugerencias] = useState({ generos: [], autores: [], sagas: [], idiomas: [] })
 
   useEffect(() => {
     cargarLibro()
-    listarValoresFiltro().then((data) => {
-      setSugerencias({
-        generos: [...new Set(data.map((l) => l.genero).filter(Boolean))].sort(),
-        autores: [...new Set(data.map((l) => l.autor).filter(Boolean))].sort(),
-        sagas: [...new Set(data.map((l) => l.saga).filter(Boolean))].sort(),
-        idiomas: [...new Set(data.map((l) => l.idioma).filter(Boolean))].sort(),
-      })
-    })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id])
 
@@ -50,23 +42,24 @@ export default function EditarLibro() {
     }
     setGuardando(true)
     try {
+      const datos = normalizarFormLibro(form)
       await actualizarLibro(id, {
-        titulo: form.titulo,
-        autor: form.autor,
-        portada_url: form.portada_url,
-        genero: form.genero,
-        editorial: form.editorial,
-        isbn: form.isbn,
-        estante: form.estante,
-        favorito: form.favorito,
-        saga: form.saga || null,
-        numero_saga: form.numero_saga === '' ? null : Number(form.numero_saga),
-        anio_publicacion: form.anio_publicacion === '' ? null : Number(form.anio_publicacion),
-        idioma: form.idioma || null,
-        paginas: form.paginas === '' ? null : Number(form.paginas),
-        ejemplares_totales: form.ejemplares_totales === '' ? null : Number(form.ejemplares_totales),
-        descripcion: form.descripcion || null,
-        notas: form.notas || null,
+        titulo: datos.titulo,
+        autor: datos.autor,
+        portada_url: datos.portada_url,
+        genero: datos.genero,
+        editorial: datos.editorial,
+        isbn: datos.isbn,
+        estante: datos.estante,
+        favorito: datos.favorito,
+        saga: datos.saga,
+        numero_saga: datos.numero_saga,
+        anio_publicacion: datos.anio_publicacion,
+        idioma: datos.idioma,
+        paginas: datos.paginas,
+        ejemplares_totales: datos.ejemplares_totales,
+        descripcion: datos.descripcion,
+        notas: datos.notas,
       })
       navigate(`/libro/${id}`)
       toast.success('Libro actualizado.')
@@ -88,112 +81,7 @@ export default function EditarLibro() {
       {mensaje && <p className="mensaje">{mensaje}</p>}
 
       <form onSubmit={handleGuardar} className="form-libro">
-        <label>
-          Título *
-          <input value={form.titulo} onChange={(e) => handleChange('titulo', e.target.value)} required />
-        </label>
-        <label>
-          Autor
-          <input
-            list="lista-autores"
-            value={form.autor || ''}
-            onChange={(e) => handleChange('autor', e.target.value)}
-          />
-        </label>
-        <label>
-          Portada (URL)
-          <input value={form.portada_url || ''} onChange={(e) => handleChange('portada_url', e.target.value)} />
-        </label>
-        <label>
-          Género
-          <input
-            list="lista-generos"
-            value={form.genero || ''}
-            onChange={(e) => handleChange('genero', e.target.value)}
-          />
-        </label>
-        <label>
-          Editorial
-          <input value={form.editorial || ''} onChange={(e) => handleChange('editorial', e.target.value)} />
-        </label>
-        <label>
-          ISBN
-          <input value={form.isbn || ''} onChange={(e) => handleChange('isbn', e.target.value)} />
-        </label>
-        <label>
-          Estante
-          <input value={form.estante || ''} onChange={(e) => handleChange('estante', e.target.value)} />
-        </label>
-
-        {form.portada_url && <img className="preview-portada" src={form.portada_url} alt="preview" />}
-
-        <fieldset className="fieldset-extra">
-          <legend>Más detalles</legend>
-
-          <div className="fila-2">
-            <label>
-              Saga
-              <input
-                list="lista-sagas"
-                value={form.saga || ''}
-                onChange={(e) => handleChange('saga', e.target.value)}
-              />
-            </label>
-            <label>
-              N° en la saga
-              <input
-                type="number"
-                step="0.5"
-                value={form.numero_saga ?? ''}
-                onChange={(e) => handleChange('numero_saga', e.target.value)}
-              />
-            </label>
-          </div>
-          <div className="fila-2">
-            <label>
-              Año de publicación
-              <input
-                type="number"
-                value={form.anio_publicacion ?? ''}
-                onChange={(e) => handleChange('anio_publicacion', e.target.value)}
-              />
-            </label>
-            <label>
-              Idioma
-              <input
-                list="lista-idiomas"
-                value={form.idioma || ''}
-                onChange={(e) => handleChange('idioma', e.target.value)}
-              />
-            </label>
-          </div>
-          <div className="fila-2">
-            <label>
-              Páginas
-              <input
-                type="number"
-                value={form.paginas ?? ''}
-                onChange={(e) => handleChange('paginas', e.target.value)}
-              />
-            </label>
-            <label>
-              Ejemplares
-              <input
-                type="number"
-                value={form.ejemplares_totales ?? ''}
-                onChange={(e) => handleChange('ejemplares_totales', e.target.value)}
-              />
-            </label>
-          </div>
-          <label>
-            Descripción
-            <textarea
-              rows={3}
-              value={form.descripcion || ''}
-              onChange={(e) => handleChange('descripcion', e.target.value)}
-            />
-          </label>
-        </fieldset>
+        <FormLibro form={form} onChange={handleChange} mostrarFavorito={false} mostrarNotas={false} />
 
         <div className="acciones-form">
           <button type="submit" disabled={guardando}>
@@ -204,19 +92,6 @@ export default function EditarLibro() {
           </button>
         </div>
       </form>
-
-      <datalist id="lista-autores">
-        {sugerencias.autores.map((a) => <option key={a} value={a} />)}
-      </datalist>
-      <datalist id="lista-generos">
-        {sugerencias.generos.map((g) => <option key={g} value={g} />)}
-      </datalist>
-      <datalist id="lista-sagas">
-        {sugerencias.sagas.map((s) => <option key={s} value={s} />)}
-      </datalist>
-      <datalist id="lista-idiomas">
-        {sugerencias.idiomas.map((i) => <option key={i} value={i} />)}
-      </datalist>
     </div>
   )
 }

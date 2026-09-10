@@ -1,9 +1,10 @@
-import { useEffect, useState, lazy, Suspense } from 'react'
+import { useState, lazy, Suspense } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { buscarPorIsbn } from '../lib/openLibrary'
-import { crearLibro, listarValoresFiltro, buscarPosiblesDuplicados } from '../lib/libros'
+import { crearLibro, buscarPosiblesDuplicados, normalizarFormLibro } from '../lib/libros'
 import { toast } from '../lib/toast'
 import { LoadingSeccion } from '../components/Loading.jsx'
+import FormLibro from '../components/FormLibro.jsx'
 
 // html5-qrcode pesa varios MB; se carga solo cuando el usuario abre el
 // scanner (no en cada visita a "Agregar libro").
@@ -38,18 +39,6 @@ export default function AgregarLibro() {
   const [mostrarScanner, setMostrarScanner] = useState(false)
   const [duplicados, setDuplicados] = useState([])
   const [verificandoDup, setVerificandoDup] = useState(false)
-  const [sugerencias, setSugerencias] = useState({ generos: [], autores: [], sagas: [], idiomas: [] })
-
-  useEffect(() => {
-    listarValoresFiltro().then((data) => {
-      setSugerencias({
-        generos: [...new Set(data.map((l) => l.genero).filter(Boolean))].sort(),
-        autores: [...new Set(data.map((l) => l.autor).filter(Boolean))].sort(),
-        sagas: [...new Set(data.map((l) => l.saga).filter(Boolean))].sort(),
-        idiomas: [...new Set(data.map((l) => l.idioma).filter(Boolean))].sort(),
-      })
-    })
-  }, [])
 
   async function handleBuscarIsbn(codigoManual) {
     const codigo = (codigoManual ?? isbn).trim()
@@ -113,13 +102,7 @@ export default function AgregarLibro() {
   async function guardarLibro() {
     setGuardando(true)
     try {
-      await crearLibro({
-        ...form,
-        anio_publicacion: form.anio_publicacion === '' ? null : Number(form.anio_publicacion),
-        paginas: form.paginas === '' ? null : Number(form.paginas),
-        ejemplares_totales: form.ejemplares_totales === '' ? null : Number(form.ejemplares_totales),
-        numero_saga: form.numero_saga === '' ? null : Number(form.numero_saga),
-      })
+      await crearLibro(normalizarFormLibro(form))
       navigate('/')
       toast.success('Libro agregado.')
     } catch (err) {
@@ -168,133 +151,7 @@ export default function AgregarLibro() {
       {mensaje && <p className="mensaje">{mensaje}</p>}
 
       <form onSubmit={handleSubmit} className="form-libro">
-        <label>
-          Título *
-          <input value={form.titulo} onChange={(e) => handleChange('titulo', e.target.value)} required />
-        </label>
-        <label>
-          Autor
-          <input
-            list="lista-autores"
-            value={form.autor}
-            onChange={(e) => handleChange('autor', e.target.value)}
-          />
-        </label>
-        <label>
-          Portada (URL)
-          <input value={form.portada_url} onChange={(e) => handleChange('portada_url', e.target.value)} />
-        </label>
-        <label>
-          Género
-          <input
-            list="lista-generos"
-            value={form.genero}
-            onChange={(e) => handleChange('genero', e.target.value)}
-          />
-        </label>
-        <label>
-          Editorial
-          <input value={form.editorial} onChange={(e) => handleChange('editorial', e.target.value)} />
-        </label>
-        <label>
-          ISBN
-          <input value={form.isbn} onChange={(e) => handleChange('isbn', e.target.value)} />
-        </label>
-        <label>
-          Estante
-          <input value={form.estante} onChange={(e) => handleChange('estante', e.target.value)} />
-        </label>
-        <label className="check-leido">
-          <input
-            type="checkbox"
-            checked={form.favorito}
-            onChange={(e) => handleChange('favorito', e.target.checked)}
-          />
-          ★ Favorito
-        </label>
-        <p className="ayuda-form">
-          Después de guardar, marcá quién lo leyó (y su puntuación/reseña) desde la ficha del libro.
-        </p>
-
-        {form.portada_url && (
-          <img className="preview-portada" src={form.portada_url} alt="preview" />
-        )}
-
-        <fieldset className="fieldset-extra">
-          <legend>Más detalles (opcional)</legend>
-
-          <div className="fila-2">
-            <label>
-              Saga
-              <input
-                list="lista-sagas"
-                value={form.saga}
-                onChange={(e) => handleChange('saga', e.target.value)}
-              />
-            </label>
-            <label>
-              N° en la saga
-              <input
-                type="number"
-                step="0.5"
-                value={form.numero_saga}
-                onChange={(e) => handleChange('numero_saga', e.target.value)}
-              />
-            </label>
-          </div>
-          <div className="fila-2">
-            <label>
-              Año de publicación
-              <input
-                type="number"
-                value={form.anio_publicacion}
-                onChange={(e) => handleChange('anio_publicacion', e.target.value)}
-              />
-            </label>
-            <label>
-              Idioma
-              <input
-                list="lista-idiomas"
-                value={form.idioma}
-                onChange={(e) => handleChange('idioma', e.target.value)}
-              />
-            </label>
-          </div>
-          <div className="fila-2">
-            <label>
-              Páginas
-              <input
-                type="number"
-                value={form.paginas}
-                onChange={(e) => handleChange('paginas', e.target.value)}
-              />
-            </label>
-            <label>
-              Ejemplares
-              <input
-                type="number"
-                value={form.ejemplares_totales}
-                onChange={(e) => handleChange('ejemplares_totales', e.target.value)}
-              />
-            </label>
-          </div>
-          <label>
-            Descripción
-            <textarea
-              rows={3}
-              value={form.descripcion}
-              onChange={(e) => handleChange('descripcion', e.target.value)}
-            />
-          </label>
-          <label>
-            Notas
-            <textarea
-              rows={2}
-              value={form.notas}
-              onChange={(e) => handleChange('notas', e.target.value)}
-            />
-          </label>
-        </fieldset>
+        <FormLibro form={form} onChange={handleChange} legendMasDetalles="Más detalles (opcional)" />
 
         {duplicados.length > 0 && (
           <div className="aviso-duplicados">
@@ -321,19 +178,6 @@ export default function AgregarLibro() {
           {verificandoDup ? 'Verificando...' : guardando ? 'Guardando...' : 'Guardar libro'}
         </button>
       </form>
-
-      <datalist id="lista-autores">
-        {sugerencias.autores.map((a) => <option key={a} value={a} />)}
-      </datalist>
-      <datalist id="lista-generos">
-        {sugerencias.generos.map((g) => <option key={g} value={g} />)}
-      </datalist>
-      <datalist id="lista-sagas">
-        {sugerencias.sagas.map((s) => <option key={s} value={s} />)}
-      </datalist>
-      <datalist id="lista-idiomas">
-        {sugerencias.idiomas.map((i) => <option key={i} value={i} />)}
-      </datalist>
     </div>
   )
 }
