@@ -1,0 +1,26 @@
+[
+  {
+    "tablename": "lecturas",
+    "policyname": "acceso por usuario",
+    "cmd": "ALL",
+    "qual": "((user_id = auth.uid()) AND cuenta_esta_activa(user_id))"
+  },
+  {
+    "tablename": "libro_tags",
+    "policyname": "acceso por usuario",
+    "cmd": "ALL",
+    "qual": "((user_id = auth.uid()) AND cuenta_esta_activa(user_id))"
+  },
+  {
+    "tablename": "perfiles",
+    "policyname": "acceso por usuario",
+    "cmd": "ALL",
+    "qual": "((user_id = auth.uid()) AND cuenta_esta_activa(user_id))"
+  },
+  {
+    "tablename": "tags",
+    "policyname": "acceso por usuario",
+    "cmd": "ALL",
+    "qual": "((user_id = auth.uid()) AND cuenta_esta_activa(user_id))"
+  }
+]
