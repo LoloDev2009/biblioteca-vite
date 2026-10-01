@@ -10,6 +10,7 @@ import Wishlist from './pages/Wishlist.jsx'
 import Sagas from './pages/Sagas.jsx'
 import Estadisticas from './pages/Estadisticas.jsx'
 import Perfiles from './pages/Perfiles.jsx'
+import Ayuda from './pages/Ayuda.jsx'
 import Login from './pages/Login.jsx'
 import Admin from './pages/Admin.jsx'
 import ToastHost from './components/ToastHost.jsx'
@@ -24,6 +25,7 @@ const ENLACES_NAV = [
   { to: '/estadisticas', label: 'Estadísticas' },
   { to: '/perfiles', label: 'Perfiles' },
   { to: '/agregar', label: 'Agregar libro' },
+  { to: '/ayuda', label: 'Ayuda' },
 ]
 
 export default function App() {
@@ -94,6 +96,7 @@ export default function App() {
           <Route path="/wishlist" element={<Wishlist />} />
           <Route path="/estadisticas" element={<Estadisticas />} />
           <Route path="/perfiles" element={<Perfiles />} />
+          <Route path="/ayuda" element={<Ayuda />} />
           <Route path="/admin" element={<Admin />} />
         </Routes>
       </main>

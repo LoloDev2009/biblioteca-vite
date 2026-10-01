@@ -133,6 +133,7 @@ lo reactivás y está todo como lo dejó.
 - **Estadísticas**: total de libros, % leídos por al menos un perfil, cantidad de lecturas registradas (todas las personas), páginas leídas en total, puntuación promedio, préstamos activos, en wishlist, géneros y autores más frecuentes, y un desglose de libros/páginas leídas y puntuación promedio **por perfil de lectura**
 - **Wishlist**: anotar libros que querés conseguir (con autocompletado por ISBN opcional); al conseguirlos, pasan al catálogo con un clic
 - **Préstamos**: listado de préstamos activos con devolución rápida
+- **Ayuda**: página estática con una guía rápida de uso (perfiles, agregar libro, marcar leído, préstamos, wishlist, estantes/sagas, estadísticas, búsqueda), pensada para quien no usa la app técnicamente
 
 ## Estructura
 ```
